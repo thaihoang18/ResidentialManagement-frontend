@@ -1,7 +1,8 @@
 import { Toaster, toast } from "sonner";
-import HomePage from "./pages/HomePage";
+import HomePage from "./pages/homepage";
 import NotFound from "./pages/NotFound";
 import { BrowserRouter, Route, Routes } from "react-router";
+import Meeting from "./pages/meeting";
 
 function App() {
   
@@ -23,6 +24,10 @@ function App() {
             path="/login" 
             element={<LoginPage />} 
           /> */}
+          <Route 
+            path="/meeting" 
+            element={<Meeting />} 
+          />
 
         </Routes>
       </BrowserRouter>
