@@ -23,7 +23,9 @@ function SideBar() {
     <SidebarProvider>
       <Sidebar side="left" variant="sidebar" collapsible="icon">
         <SidebarHeader>
-          <div className="px-3 py-2 text-sm font-semibold">Quản lý chung cư</div>
+          <div className="px-3 py-2 text-sm font-semibold header-gradient rounded-md">
+            <div className="accent-text">Quản lý chung cư</div>
+          </div>
         </SidebarHeader>
 
         <SidebarContent>
@@ -32,7 +34,14 @@ function SideBar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("/users")}>
-                  <Link to="/users" className="flex items-center gap-2">
+                  <Link
+                    to="/users"
+                    className={
+                      isActive("/users")
+                        ? "flex items-center gap-2 px-3 py-2 rounded-md event-accent accent-text font-medium"
+                        : "flex items-center gap-2 px-3 py-2 rounded-md accent-outline"
+                    }
+                  >
                     <User />
                     <span>Quản lý người dùng</span>
                   </Link>
@@ -41,7 +50,14 @@ function SideBar() {
 
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("/residents")}>
-                  <Link to="/residents" className="flex items-center gap-2">
+                  <Link
+                    to="/residents"
+                    className={
+                      isActive("/residents")
+                        ? "flex items-center gap-2 px-3 py-2 rounded-md event-accent accent-text font-medium"
+                        : "flex items-center gap-2 px-3 py-2 rounded-md accent-outline"
+                    }
+                  >
                     <Users />
                     <span>Quản lý nhân khẩu</span>
                   </Link>
@@ -50,7 +66,14 @@ function SideBar() {
 
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("/households")}>
-                  <Link to="/households" className="flex items-center gap-2">
+                  <Link
+                    to="/households"
+                    className={
+                      isActive("/households")
+                        ? "flex items-center gap-2 px-3 py-2 rounded-md event-accent accent-text font-medium"
+                        : "flex items-center gap-2 px-3 py-2 rounded-md accent-outline"
+                    }
+                  >
                     <Home />
                     <span>Quản lý hộ khẩu</span>
                   </Link>
@@ -59,7 +82,14 @@ function SideBar() {
 
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("/temporary")}>
-                  <Link to="/temporary" className="flex items-center gap-2">
+                  <Link
+                    to="/temporary"
+                    className={
+                      isActive("/temporary")
+                        ? "flex items-center gap-2 px-3 py-2 rounded-md event-accent accent-text font-medium"
+                        : "flex items-center gap-2 px-3 py-2 rounded-md accent-outline"
+                    }
+                  >
                     <MapPin />
                     <span>Tạm trú / Tạm vắng</span>
                   </Link>
@@ -68,7 +98,14 @@ function SideBar() {
 
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive("/meeting")}>
-                  <Link to="/meeting" className="flex items-center gap-2">
+                  <Link
+                    to="/meeting"
+                    className={
+                      isActive("/meeting")
+                        ? "flex items-center gap-2 px-3 py-2 rounded-md event-accent accent-text font-medium"
+                        : "flex items-center gap-2 px-3 py-2 rounded-md accent-outline"
+                    }
+                  >
                     <Calendar />
                     <span>Lịch họp</span>
                   </Link>
@@ -79,7 +116,9 @@ function SideBar() {
         </SidebarContent>
 
         <SidebarFooter>
-          <div className="px-3 py-2 text-xs text-muted-foreground">Phiên bản thử nghiệm</div>
+          <div className="px-3 py-2 text-xs text-muted-foreground">
+            Phiên bản thử nghiệm
+          </div>
         </SidebarFooter>
       </Sidebar>
     </SidebarProvider>

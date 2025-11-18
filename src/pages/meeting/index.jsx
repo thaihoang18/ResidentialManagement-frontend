@@ -39,30 +39,67 @@ function Meeting() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Fetch meetings from backend
-    useEffect(() => {
+    // helper: return timezone offset like "+07:00" or "-04:00"
+    function tzOffsetString() {
+        const minutes = -new Date().getTimezoneOffset(); // minutes ahead of UTC
+        const sign = minutes >= 0 ? "+" : "-";
+        const abs = Math.abs(minutes);
+        const hh = String(Math.floor(abs / 60)).padStart(2, "0");
+        const mm = String(abs % 60).padStart(2, "0");
+        return `${sign}${hh}:${mm}`;
+    }
+
+    // helper: map backend meeting object (with ISO time) to frontend event (local date/time)
+    function mapMeetingToEvent(meeting) {
+        const id = meeting.id;
+        const title = meeting.topic || meeting.title || "";
+        const timeStr = meeting.time || meeting.datetime || meeting.date || "";
+        let date = "";
+        let time = "";
+        if (timeStr) {
+            const dt = new Date(timeStr);
+            // format local YYYY-MM-DD and HH:MM
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, "0");
+            const d = String(dt.getDate()).padStart(2, "0");
+            date = `${y}-${m}-${d}`;
+            const hh = String(dt.getHours()).padStart(2, "0");
+            const mm = String(dt.getMinutes()).padStart(2, "0");
+            time = `${hh}:${mm}`;
+        }
+        return {
+            id,
+            title,
+            date,
+            time,
+            location: meeting.location || "",
+            description: meeting.content || meeting.description || "",
+            tasks: meeting.tasks || [],
+            creator_id: meeting.creator_id
+        };
+    }
+
+    // helper: load meetings from backend and normalize to frontend events
+    async function loadMeetings() {
         setLoading(true);
-        fetch("/api/meetings")
-            .then(res => {
-                if (!res.ok) throw new Error("Lỗi tải dữ liệu cuộc họp");
-                return res.json();
-            })
-            .then(data => {
-                // If backend returns { success, data: [...] }
-                const arr = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
-                // Map backend fields to frontend event fields
-                setEvents(arr.map(ev => ({
-                    id: ev.id,
-                    title: ev.topic || ev.title || "",
-                    date: ev.time ? ev.time.slice(0,10) : "",
-                    time: ev.time ? ev.time.slice(11,16) : "",
-                    location: ev.location || "",
-                    description: ev.content || ev.description || ""
-                })));
-                setError(null);
-            })
-            .catch(e => setError(e.message))
-            .finally(() => setLoading(false));
+        setError(null);
+        try {
+            const res = await fetch("/api/meetings");
+            if (!res.ok) throw new Error("Lỗi tải dữ liệu cuộc họp");
+            const data = await res.json();
+            const arr = Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []);
+            setEvents(arr.map(mapMeetingToEvent));
+            setError(null);
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // Fetch meetings from backend (use loadMeetings)
+    useEffect(() => {
+        loadMeetings();
     }, []);
 
     const weeks = useMemo(() => generateCalendar(view.year, view.month), [view]);
@@ -137,13 +174,13 @@ function Meeting() {
         e.preventDefault();
         setLoading(true);
         setError(null);
-        // Map frontend form to backend fields (no timezone, send as local)
+        // include timezone offset so backend interprets the datetime as local
         const payload = {
             topic: form.title,
             content: form.description,
             tasks: form.tasks ? form.tasks.split(";").map(t => t.trim()).filter(Boolean) : [],
             location: form.location,
-            time: `${form.date}T${form.time}:00`,
+            time: `${form.date}T${form.time}:00${tzOffsetString()}`,
             creator_id: form.creator_id
         };
         try {
@@ -156,12 +193,18 @@ function Meeting() {
                     body: JSON.stringify(payload)
                 });
                 if (!res.ok) throw new Error("Không thể cập nhật cuộc họp");
-                updatedMeeting = await res.json();
-                setEvents(prev => prev.map(ev => ev.id === form.id ? {
-                    ...ev,
-                    ...form,
-                    tasks: payload.tasks
-                } : ev));
+                try {
+                    updatedMeeting = await res.json();
+                } catch {
+                    updatedMeeting = null;
+                }
+                if (updatedMeeting && (updatedMeeting.id || updatedMeeting.time)) {
+                    // use returned object to update state
+                    setEvents(prev => prev.map(ev => ev.id === form.id ? mapMeetingToEvent(updatedMeeting) : ev));
+                } else {
+                    // backend didn't return full object -> reload from server
+                    await loadMeetings();
+                }
             } else {
                 // Add (POST)
                 res = await fetch("/api/meetings", {
@@ -170,18 +213,19 @@ function Meeting() {
                     body: JSON.stringify(payload)
                 });
                 if (!res.ok) throw new Error("Không thể tạo cuộc họp");
-                updatedMeeting = await res.json();
-                // Map backend response to frontend event
-                setEvents(prev => [...prev, {
-                    id: updatedMeeting.id,
-                    title: updatedMeeting.topic,
-                    date: updatedMeeting.time ? updatedMeeting.time.slice(0,10) : "",
-                    time: updatedMeeting.time ? updatedMeeting.time.slice(11,16) : "",
-                    location: updatedMeeting.location,
-                    description: updatedMeeting.content,
-                    tasks: updatedMeeting.tasks || [],
-                    creator_id: updatedMeeting.creator_id
-                }]);
+                try {
+                    updatedMeeting = await res.json();
+                } catch {
+                    updatedMeeting = null;
+                }
+                if (updatedMeeting && updatedMeeting.id && updatedMeeting.time) {
+                    // map backend response to frontend event
+                    const newEvent = mapMeetingToEvent(updatedMeeting);
+                    setEvents(prev => [...prev, newEvent]);
+                } else {
+                    // backend didn't return created object (or id) -> reload list to sync
+                    await loadMeetings();
+                }
             }
             setShowForm(false);
             // Clear form after creating a new meeting
@@ -219,7 +263,8 @@ function Meeting() {
         try {
             const res = await fetch(`/api/meetings/${id}`, { method: "DELETE" });
             if (!res.ok) throw new Error("Không thể xóa cuộc họp");
-            setEvents(prev => prev.filter(ev => ev.id !== id));
+            // reload list from server to ensure client/server synchronized (handles newly-created items)
+            await loadMeetings();
             setSelectedEvent(null);
         } catch (e) {
             setError(e.message);
