@@ -8,99 +8,141 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* Đổi về giao diện sáng nền trắng và chữ tối */
+  color-scheme: light;
+  color: #111827; /* gray-900 */
+  background-color: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Màu nền/chữ chính */
+  --background: #ffffff;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --popover: #ffffff;
+  --popover-foreground: #111827;
+
+  /* Accent / Primary sử dụng #8A2BE2 */
+  --primary: #8A2BE2;
+  --primary-foreground: #ffffff;
+  --primary-gradient: linear-gradient(90deg,#8A2BE2 0%,#6F1DD8 100%);
+  --primary-shadow: 0 8px 20px rgba(138,43,226,0.12);
+
+  /* thêm biến hover siêu nhạt */
+  /* hover màu tím - tăng nhẹ alpha để rõ hơn trên sidebar */
+  --primary-hover-bg: rgba(138,43,226,0.08); /* nhạt nhưng rõ hơn */
+  --primary-hover-bg-very: rgba(138,43,226,0.05); /* nhạt vừa phải cho các vùng nhạy cảm */
+  --primary-hover-border: rgba(138,43,226,0.18);
+  --secondary: #f3f4f6;
+  --secondary-foreground: #111827;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #8A2BE2;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #e5e7eb;
+  --input: #f9fafb;
+  --ring: #e9d6ff;
+
+  --chart-1: #6b21a8;
+  --chart-2: #7c3aed;
+  --chart-3: #a78bfa;
+  --chart-4: #c7b4ff;
+  --chart-5: #d8b4fe;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #111827;
+  --sidebar-primary: #8A2BE2;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #8A2BE2;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #e9d6ff;
+
+  /* responsive calendar cell height:
+     - min 100px
+     - prefer to divide available viewport space for 6 rows (header ~260px)
+     - max 180px
+  */
+  --calendar-cell-height: clamp(100px, calc((100vh - 260px) / 6), 180px);
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+/* Grid rows fixed to calendar cell height so all cells in all months stay same size */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: var(--calendar-cell-height);
+  gap: 0.75rem; /* matches existing gap-3 */
 }
 
-body {
-  margin: 0;
+/* Each day cell will stretch to the row height and arrange content vertically */
+.daycell {
+  height: 100%;
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  flex-direction: column;
+  padding: 0.75rem; /* keep same spacing as previous p-3 */
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative; /* allow absolute badge inside */
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Header row inside a day cell (date and actions) should not flex */
+.daycell-header {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+/* Events container takes remaining space and becomes scrollable if overflow */
+.daycell-events {
+  margin-top: 0.5rem;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow-y: auto;
+  padding-right: 0.25rem; /* space for scrollbar */
 }
-button:hover {
-  border-color: #646cff;
+
+/* Individual event items should not expand the cell */
+.daycell-event {
+  flex: 0 0 auto;
+  overflow: hidden;
 }
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+
+/* Slightly stronger hover for event items for visibility */
+.daycell-event:hover {
+  background: linear-gradient(90deg, rgba(138,43,226,0.10), rgba(255,255,255,0));
+}
+
+/* dành cho các item có event-accent (vệt tím trái): hover làm nền nhạt hơn */
+.event-accent:hover {
+  background: linear-gradient(90deg, rgba(138,43,226,0.12), rgba(255,255,255,0));
+}
+
+/* đảm bảo focus nhận được ring tím nhẹ */
+.accent-ring:focus,
+.accent-ring:focus-visible {
+  box-shadow: 0 0 0 6px rgba(138,43,226,0.08);
+  outline: none;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
+    color: #111827;
     background-color: #ffffff;
   }
   a:hover {
-    color: #747bff;
+    color: #7a23d1;
   }
   button {
-    background-color: #f9f9f9;
+    background-color: #ffffff;
   }
 }
 
@@ -143,37 +185,212 @@ button:focus-visible {
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Đồng bộ .dark với giao diện trắng như yêu cầu */
+  --background: #ffffff;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --popover: #ffffff;
+  --popover-foreground: #111827;
+  --primary: #8A2BE2;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #111827;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #8A2BE2;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #e5e7eb;
+  --input: #f9fafb;
+  --ring: #e9d6ff;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #111827;
+}
+
+.header-gradient {
+  background: linear-gradient(180deg, rgba(138,43,226,0.06), rgba(255,255,255,1));
+}
+
+.accent-gradient-bg {
+  background: var(--primary-gradient);
+  color: var(--primary-foreground);
+}
+
+.accent-btn {
+  background: var(--primary-gradient);
+  color: var(--primary-foreground);
+  box-shadow: var(--primary-shadow);
+  border: 0;
+}
+
+.accent-outline {
+  border-color: rgba(138,43,226,0.12);
+  color: var(--primary);
+  background: #fff;
+}
+
+.accent-text {
+  color: var(--primary) !important;
+}
+
+.event-accent {
+  /* trước đây dùng cho vệt trái; giờ chuyển thành alias nhẹ nếu cần */
+  background: linear-gradient(90deg, rgba(138,43,226,0.04), rgba(255,255,255,0));
+  border-left: 4px solid var(--primary);
+}
+
+/* NEW: highlight for day cells that have events
+   - strong enough to nhận biết trên sidebar/background
+   - gradient chủ đạo tím, chữ trắng
+   - cursor pointer, hover hơi đậm hơn
+*/
+.daycell-has-events {
+  background: linear-gradient(180deg, rgba(138,43,226,1) 0%, rgba(111,29,216,0.95) 100%);
+  color: #ffffff;
+  border-radius: 0.5rem; /* match DayCell rounded */
+  box-shadow: 0 6px 18px rgba(138,43,226,0.12);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+  /* ensure text inside uses white where applicable */
+}
+.daycell-has-events .text-sm,
+.daycell-has-events .font-medium,
+.daycell-has-events .accent-text {
+  color: #ffffff !important;
+}
+
+/* hover: mild brighten / scale for affordance */
+.daycell-has-events:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+  box-shadow: 0 10px 26px rgba(138,43,226,0.16);
+}
+
+/* non-clickable daycells remain default pointer */
+.daycell {
+  /* ...existing properties from before... */
+  /* ensure default cursor is auto; clickable gets pointer via .daycell-has-events */
+  cursor: default;
+}
+
+/* if a day is outside current month but has events, keep muted border but still show purple (optional): */
+.daycell.outside-month {
+  opacity: 0.92;
+}
+
+/* keep accessibility focus style for clickable daycells */
+.daycell-has-events:focus,
+.daycell-has-events:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 6px rgba(138,43,226,0.12);
+}
+
+/* small round badge bottom-right showing number of events */
+.daycell-badge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  transition: transform 0.12s ease, background-color 0.12s ease;
+  z-index: 10;
+  /* default for non-purple cell (if ever used) */
+  background: var(--primary);
+  color: #ffffff;
+  border: 0;
+}
+
+/* when the day cell itself is purple, invert badge to white bg with purple text for contrast */
+.daycell-has-events .daycell-badge {
+  background: #ffffff;
+  color: var(--primary);
+  box-shadow: 0 6px 18px rgba(138,43,226,0.12);
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.daycell-badge:active,
+.daycell-badge:focus {
+  transform: translateY(1px) scale(0.98);
+  outline: none;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.25s, background-color 0.15s, box-shadow 0.15s, transform 0.12s;
+  color: var(--foreground);
+  border-color: rgba(0,0,0,0.04);
+}
+
+/* Header buttons: lift slightly and increase shadow on hover (like daycell) */
+.header-gradient .accent-btn:hover,
+.header-gradient .accent-outline:hover,
+.header-gradient .accent-text:hover,
+.header-gradient button:hover {
+  transform: translateY(-0.6px);
+  box-shadow: 0 6px 12px rgba(138,43,226,0.08);
+}
+
+/* Disable hover/lift for the header title (Lịch họp) */
+.header-gradient h1,
+.header-gradient h1:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  cursor: default;
+}
+
+/* stronger hover shadow variable (already exists, but ensure presence) */
+:root {
+  --primary-hover-shadow: 0 10px 30px rgba(138,43,226,0.16);
+}
+
+/* Generic action buttons (save, cancel, edit, delete) get a subtle lift + shadow on hover */
+.action-btn {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+.action-btn:hover,
+.action-btn:focus {
+  transform: translateY(-0.6px);
+  box-shadow: var(--primary-hover-shadow);
+}
+
+/* Close icon/button style (round) — light purple bg on hover + slight lift */
+.close-btn {
+  border-radius: 999px;
+  padding: 6px;
+  transition: background-color 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease;
+  background: transparent;
+}
+.close-btn:hover,
+.close-btn:focus {
+  background-color: var(--primary-hover-bg-very);
+  transform: translateY(-0.6px);
+  box-shadow: var(--primary-hover-shadow);
+  color: var(--primary) !important;
+  outline: none;
+}
+
+/* For destructive actions, keep red hover but slightly lift (use alongside action-btn) */
+.button-destructive:hover,
+.action-btn.destructive:hover {
+  transform: translateY(-0.6px);
+  box-shadow: 0 10px 30px rgba(239,68,68,0.12);
 }
 
 @layer base {
@@ -183,4 +400,36 @@ button:focus-visible {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* today indicator: visible on any day cell */
+.today-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 9999px; /* circle */
+  background: var(--primary); /* purple when no events */
+  color: #ffffff;
+  line-height: 1;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+/* khi ô có lịch: hiển thị vòng trắng với chữ tím cho độ tương phản */
+.daycell-has-events .today-indicator {
+  background: #ffffff;        /* white circle */
+  color: var(--primary);      /* purple text */
+  border: 1.5px solid rgba(0,0,0,0.04);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+/* ensure the date element does not get the header/title hover effect */
+.daycell .today-indicator:hover,
+.daycell .today-indicator:focus {
+  transform: none;
+  box-shadow: none;
+  cursor: default;
 }
