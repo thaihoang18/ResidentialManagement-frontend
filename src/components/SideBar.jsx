@@ -33,11 +33,11 @@ function SideBar() {
             <SidebarGroupLabel>Quản lý chính</SidebarGroupLabel>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/users")}>
+                <SidebarMenuButton asChild isActive={isActive("/user")}>
                   <Link
-                    to="/users"
+                    to="/user"
                     className={
-                      isActive("/users")
+                      isActive("/user")
                         ? "flex items-center gap-2 px-3 py-2 rounded-md event-accent accent-text font-medium"
                         : "flex items-center gap-2 px-3 py-2 rounded-md accent-outline"
                     }
@@ -49,11 +49,11 @@ function SideBar() {
               </SidebarMenuItem>
 
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/residents")}>
+                <SidebarMenuButton asChild isActive={isActive("/resident")}>
                   <Link
-                    to="/residents"
+                    to="/resident"
                     className={
-                      isActive("/residents")
+                      isActive("/resident")
                         ? "flex items-center gap-2 px-3 py-2 rounded-md event-accent accent-text font-medium"
                         : "flex items-center gap-2 px-3 py-2 rounded-md accent-outline"
                     }
@@ -65,11 +65,11 @@ function SideBar() {
               </SidebarMenuItem>
 
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/households")}>
+                <SidebarMenuButton asChild isActive={isActive("/household")}>
                   <Link
-                    to="/households"
+                    to="/household"
                     className={
-                      isActive("/households")
+                      isActive("/household")
                         ? "flex items-center gap-2 px-3 py-2 rounded-md event-accent accent-text font-medium"
                         : "flex items-center gap-2 px-3 py-2 rounded-md accent-outline"
                     }
