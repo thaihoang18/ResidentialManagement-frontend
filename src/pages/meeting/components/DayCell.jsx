@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { CgMoreO } from "react-icons/cg";
 
 export default function DayCell({ day, isCurrentMonth, isToday, events, onDayDetail, onEventClick }) {
-  const iso = day.toISOString().slice(0, 10);
+
   const hasEvents = events && events.length > 0;
 
   // keyboard handler for accessibility

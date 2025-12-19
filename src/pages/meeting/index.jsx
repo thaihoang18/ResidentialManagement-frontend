@@ -39,15 +39,6 @@ function Meeting() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // helper: return timezone offset like "+07:00" or "-04:00"
-    function tzOffsetString() {
-        const minutes = -new Date().getTimezoneOffset(); // minutes ahead of UTC
-        const sign = minutes >= 0 ? "+" : "-";
-        const abs = Math.abs(minutes);
-        const hh = String(Math.floor(abs / 60)).padStart(2, "0");
-        const mm = String(abs % 60).padStart(2, "0");
-        return `${sign}${hh}:${mm}`;
-    }
 
     // helper: map backend meeting object (with ISO time) to frontend event (local date/time)
     function mapMeetingToEvent(meeting) {
@@ -180,7 +171,7 @@ function Meeting() {
             content: form.description,
             tasks: form.tasks ? form.tasks.split(";").map(t => t.trim()).filter(Boolean) : [],
             location: form.location,
-            time: `${form.date}T${form.time}:00${tzOffsetString()}`,
+            time: `${form.date}T${form.time}:00`,
             creator_id: form.creator_id
         };
         try {
