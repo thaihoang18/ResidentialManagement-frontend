@@ -3,6 +3,7 @@ import HomePage from "./pages/homepage";
 import NotFound from "./pages/NotFound";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Meeting from "./pages/meeting";
+import Household from "./pages/household";
 import SideBar from "./components/SideBar";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="*" element={<NotFound />} />
               <Route path="/meeting" element={<Meeting />} />
+              <Route path="/household" element={<Household />} />
             </Routes>
           </main>
         </div>
