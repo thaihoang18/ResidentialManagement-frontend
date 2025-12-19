@@ -4,7 +4,11 @@ import { XIcon } from "lucide-react";
 
 export default function DayDetailModal({ day, events, onClose, onEventClick }) {
   if (!day) return null;
-  const iso = day.toISOString().slice(0, 10);
+  // Helper to get local date string YYYY-MM-DD
+  function getLocalDateString(day) {
+    return `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+  }
+  const iso = getLocalDateString(day);
   const dayEvents = events.filter(ev => ev.date === iso);
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
