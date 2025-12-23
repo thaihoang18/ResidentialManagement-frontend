@@ -28,6 +28,7 @@ export function DataTable({
   searchPlaceholder = "Tìm kiếm...",
   enableFilters = false,
   filters = [],
+  rowClassName = "",
 }) {
   const [sorting, setSorting] = React.useState([]);
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -164,7 +165,7 @@ export function DataTable({
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow key={row.id} className={typeof rowClassName === "function" ? rowClassName(row) : rowClassName}>
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

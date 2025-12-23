@@ -30,10 +30,10 @@ export default function HouseholdDeleteDialog({
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" size="sm" className="bg-white accent-outline transition-transform hover:-translate-y-0.5" onClick={() => onOpenChange(false)}>
             Hủy
           </Button>
-          <Button type="button" variant="destructive" disabled={saving} onClick={onConfirm}>
+          <Button type="button" variant="destructive" className="accent-btn transition-transform hover:-translate-y-0.5" disabled={saving} onClick={onConfirm}>
             {saving ? "Đang xóa..." : "Xóa"}
           </Button>
         </DialogFooter>

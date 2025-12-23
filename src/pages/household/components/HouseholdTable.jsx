@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
+import { Edit2, Split, Trash2 } from "lucide-react";
 
 export default function HouseholdTable({ data, onEdit, onDelete, onSplit }) {
   const columns = useMemo(
@@ -37,17 +38,32 @@ export default function HouseholdTable({ data, onEdit, onDelete, onSplit }) {
         enableColumnFilter: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => onEdit(row.original)}>
-              Sửa
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => onSplit(row.original)}>
-              Tách hộ
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onEdit(row.original)}
+              title="Sửa"
+              className="bg-white accent-text transition-transform hover:-translate-y-0.5"
+            >
+              <Edit2 className="w-4 h-4" />
             </Button>
             <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onDelete(row.original)}>
-              Xóa
+              variant="ghost"
+              size="icon"
+              onClick={() => onSplit(row.original)}
+              title="Tách hộ"
+              className="bg-white accent-text transition-transform hover:-translate-y-0.5"
+            >
+              <Split className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(row.original)}
+              title="Xóa"
+              className="bg-white accent-text transition-transform hover:-translate-y-0.5"
+            >
+              <Trash2 className="w-4 h-4 text-red-600" />
             </Button>
           </div>
         ),
@@ -69,6 +85,7 @@ export default function HouseholdTable({ data, onEdit, onDelete, onSplit }) {
         { id: "street", label: "Tên đường", type: "select" },
         { id: "head_name", label: "Tên chủ hộ", type: "text", placeholder: "VD: Nguyễn Văn A" },
       ]}
+      rowClassName="hover:bg-purple-50"
     />
   );
 }
