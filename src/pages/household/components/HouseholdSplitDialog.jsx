@@ -182,6 +182,7 @@ export default function HouseholdSplitDialog({
               type="button"
               variant="outline"
               size="sm"
+              className="bg-white accent-outline transition-transform hover:-translate-y-0.5"
               onClick={() => {
                 if (allChecked) {
                   onSelectedIdsChange([]);
@@ -223,7 +224,7 @@ export default function HouseholdSplitDialog({
                 <TableBody>
                   {residents.length ? (
                     residents.map((r) => (
-                      <TableRow key={r.id} className="hover:bg-muted/50">
+                      <TableRow key={r.id} className="hover:bg-purple-50">
                         <TableCell>
                           <input
                             type="checkbox"
@@ -311,11 +312,12 @@ export default function HouseholdSplitDialog({
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" size="sm" className="bg-white accent-outline transition-transform hover:-translate-y-0.5" onClick={() => onOpenChange(false)}>
             Hủy
           </Button>
           <Button
             type="button"
+            className="accent-btn transition-transform hover:-translate-y-0.5"
             disabled={saving}
             onClick={() => {
               const nonHeadSelectedIds = selectedIds.filter(

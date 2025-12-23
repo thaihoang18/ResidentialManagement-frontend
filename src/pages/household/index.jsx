@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import HouseholdHeader from "./components/HouseholdHeader";
 import HouseholdTable from "./components/HouseholdTable";
 import HouseholdFormDialog from "./components/HouseholdFormDialog";
 import HouseholdDeleteDialog from "./components/HouseholdDeleteDialog";
@@ -288,16 +288,8 @@ function Household() {
     }
 
     return (
-        <div className="p-6 space-y-4">
-            <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold">Hộ gia đình</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Danh sách hộ gia đình trong khu dân cư.
-                    </p>
-                </div>
-                <Button onClick={openCreate}>Thêm hộ</Button>
-            </div>
+        <div className="space-y-4 p-6">
+            <HouseholdHeader onCreate={openCreate} />
 
             {error ? (
                 <div className="text-sm text-destructive">{error}</div>
