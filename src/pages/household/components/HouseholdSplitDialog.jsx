@@ -224,7 +224,7 @@ export default function HouseholdSplitDialog({
                 <TableBody>
                   {residents.length ? (
                     residents.map((r) => (
-                      <TableRow key={r.id} className="hover:bg-purple-50">
+                      <TableRow key={r.id} className="hover:bg-teal-50">
                         <TableCell>
                           <input
                             type="checkbox"

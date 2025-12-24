@@ -47,7 +47,7 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
       loading={loading}
       enableSearch
       searchPlaceholder="Tìm theo tên, số CMND, quê quán..."
-      rowClassName="hover:bg-purple-50"
+      rowClassName="hover:bg-teal-50"
     />
   );
 }
