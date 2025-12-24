@@ -85,7 +85,7 @@ export default function HouseholdTable({ data, onEdit, onDelete, onSplit }) {
         { id: "street", label: "Tên đường", type: "select" },
         { id: "head_name", label: "Tên chủ hộ", type: "text", placeholder: "VD: Nguyễn Văn A" },
       ]}
-      rowClassName="hover:bg-purple-50"
+      rowClassName="hover:bg-teal-50"
     />
   );
 }

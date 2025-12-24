@@ -17,7 +17,7 @@ export default function DayCell({ day, isCurrentMonth, isToday, events, onDayDet
 
   return (
     <div
-      className={`rounded-lg ${isCurrentMonth ? 'bg-white shadow-sm hover:bg-purple-50' : 'bg-gray-50 text-gray-400'} daycell ${hasEvents ? 'daycell-has-events' : ''} ${!isCurrentMonth ? 'outside-month' : ''}`}
+      className={`rounded-lg ${isCurrentMonth ? 'bg-white shadow-sm hover:bg-teal-50' : 'bg-gray-50 text-gray-400'} daycell ${hasEvents ? 'daycell-has-events' : ''} ${!isCurrentMonth ? 'outside-month' : ''}`}
       onClick={() => { if (hasEvents) onDayDetail(day); }}
       role={hasEvents ? "button" : undefined}
       tabIndex={hasEvents ? 0 : -1}
