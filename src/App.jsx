@@ -4,6 +4,7 @@ import NotFound from "./pages/NotFound";
 import { BrowserRouter, Route, Routes } from "react-router";
 import Meeting from "./pages/meeting";
 import Household from "./pages/household";
+import Resident from "./pages/resident";
 import SideBar from "./components/SideBar";
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
               <Route path="*" element={<NotFound />} />
               <Route path="/meeting" element={<Meeting />} />
               <Route path="/household" element={<Household />} />
+              <Route path="/resident" element={<Resident />} />
             </Routes>
           </main>
         </div>
