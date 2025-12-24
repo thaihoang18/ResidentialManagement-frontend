@@ -63,8 +63,10 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
           <Input name="id_number" placeholder="Số CMND/CCCD" value={form.id_number || ""} onChange={handleChange} />
 
           <DialogFooter>
-            <Button variant="secondary" onClick={onClose} type="button">Hủy</Button>
-            <Button type="submit">Lưu</Button>
+            <Button type="button" variant="outline" size="sm" className="bg-white accent-outline transition-transform hover:-translate-y-0.5" onClick={onClose}>
+              Hủy
+            </Button>
+            <Button type="submit" className="accent-btn transition-transform hover:-translate-y-0.5">Lưu</Button>
           </DialogFooter>
         </form>
       </DialogContent>

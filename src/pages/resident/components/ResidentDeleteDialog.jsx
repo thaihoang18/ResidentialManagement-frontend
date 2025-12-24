@@ -23,8 +23,12 @@ export default function ResidentDeleteDialog({ target, onClose, onDeleted }) {
         </DialogHeader>
         <div className="py-4">Bạn có muốn xóa cư dân <strong>{target.full_name}</strong> không?</div>
         <DialogFooter>
-          <Button variant="secondary" onClick={onClose}>Hủy</Button>
-          <Button onClick={handleDelete}>Xóa</Button>
+          <Button type="button" variant="outline" size="sm" className="bg-white accent-outline transition-transform hover:-translate-y-0.5" onClick={onClose}>
+            Hủy
+          </Button>
+          <Button type="button" variant="destructive" className="accent-btn transition-transform hover:-translate-y-0.5" onClick={handleDelete}>
+            Xóa
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

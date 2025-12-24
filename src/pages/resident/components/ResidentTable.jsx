@@ -16,10 +16,22 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
       { accessorKey: "relation_to_head", header: "Quan hệ" },
       { id: "actions", header: "Thao tác", enableSorting: false, enableGlobalFilter: false, enableColumnFilter: false, cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => onEdit(row.original)} title="Sửa">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onEdit(row.original)}
+            title="Sửa"
+            className="bg-white accent-text transition-transform hover:-translate-y-0.5"
+          >
             <Edit2 className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => onDelete(row.original)} title="Xóa">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete(row.original)}
+            title="Xóa"
+            className="bg-white accent-text transition-transform hover:-translate-y-0.5"
+          >
             <Trash2 className="w-4 h-4 text-red-600" />
           </Button>
         </div>
