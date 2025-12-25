@@ -10,9 +10,10 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
       { accessorKey: "full_name", header: "Họ và tên" },
       { accessorKey: "date_of_birth", header: "Ngày sinh", cell: ({ row }) => new Date(row.original.date_of_birth).toLocaleDateString() },
       { accessorKey: "place_of_birth", header: "Nơi sinh" },
-      { accessorKey: "native_place", header: "Quê quán" },
+      { accessorKey: "gender", header: "Giới tính" },
       { accessorKey: "occupation", header: "Nghề nghiệp" },
       { accessorKey: "id_number", header: "Số CMND/CCCD" },
+      { accessorKey: "household_id", header: "STT hộ khẩu thường trú" },
       { accessorKey: "relation_to_head", header: "Quan hệ" },
       { id: "actions", header: "Thao tác", enableSorting: false, enableGlobalFilter: false, enableColumnFilter: false, cell: ({ row }) => (
         <div className="flex items-center gap-2">
@@ -46,7 +47,7 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
       data={data}
       loading={loading}
       enableSearch
-      searchPlaceholder="Tìm theo tên, số CMND, quê quán..."
+      searchPlaceholder="Tìm theo tên, số CMND, nơi sinh..."
       rowClassName="hover:bg-teal-50"
     />
   );

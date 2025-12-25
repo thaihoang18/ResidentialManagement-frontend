@@ -53,14 +53,20 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
           <DialogTitle>{initialData ? "Sửa cư dân" : "Thêm cư dân"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-2">
-          <Input name="household_id" placeholder="household_id" value={form.household_id || ""} onChange={handleChange} />
-          <Input name="full_name" placeholder="Họ và tên" value={form.full_name || ""} onChange={handleChange} />
-          <Input name="date_of_birth" type="date" placeholder="Ngày sinh" value={form.date_of_birth ? form.date_of_birth.substring(0,10) : ""} onChange={handleChange} />
-          <Input name="place_of_birth" placeholder="Nơi sinh" value={form.place_of_birth || ""} onChange={handleChange} />
-          <Input name="native_place" placeholder="Quê quán" value={form.native_place || ""} onChange={handleChange} />
-          <Input name="occupation" placeholder="Nghề nghiệp" value={form.occupation || ""} onChange={handleChange} />
-          <Input name="id_number" placeholder="Số CMND/CCCD" value={form.id_number || ""} onChange={handleChange} />
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-2 max-h-[70vh] overflow-y-auto pr-2">
+          <label>Họ và tên:</label><Input name="full_name" placeholder="Họ và tên" value={form.full_name || ""} onChange={handleChange} />
+          <label>Ngày sinh:</label><Input name="date_of_birth" type="date" placeholder="Ngày sinh" value={form.date_of_birth ? form.date_of_birth.substring(0,10) : ""} onChange={handleChange} />
+          <label>Nơi sinh:</label><Input name="place_of_birth" placeholder="Nơi sinh" value={form.place_of_birth || ""} onChange={handleChange} />
+          <label>Quê quán:</label><Input name="native_place" placeholder="Quê quán" value={form.native_place || ""} onChange={handleChange} />
+          <label>Giới tính:</label><Input name="gender" placeholder="Giới tính" value={form.gender || ""} onChange={handleChange} />
+          <label>Dân tộc:</label><Input name="ethnicity" placeholder="Dân tộc" value={form.ethnicity || ""} onChange={handleChange} />
+          <label>Nghề nghiệp:</label><Input name="occupation" placeholder="Nghề nghiệp" value={form.occupation || ""} onChange={handleChange} />
+          <label>Số CMND/CCCD:</label><Input name="id_number" placeholder="Số CMND/CCCD" value={form.id_number || ""} onChange={handleChange} />
+          <label>Ngày cấp:</label><Input name="id_issue_date" type="date" placeholder="Ngày cấp" value={form.id_issue_date ? form.id_issue_date.substring(0,10) : ""} onChange={handleChange} />
+          <label>Nơi cấp:</label><Input name="id_issue_place" placeholder="Nơi cấp" value={form.id_issue_place || ""} onChange={handleChange} />
+          <label>STT hộ khẩu:</label><Input name="household_id" placeholder="STT hộ khẩu" value={form.household_id || ""} onChange={handleChange} />
+          <label>Ngày đăng ký thường trú:</label><Input name="registration_date" type="date" placeholder="Ngày đăng ký thường trú" value={form.registration_date ? form.registration_date.substring(0,10) : ""} onChange={handleChange} />
+          <label>Quan hệ:</label><Input name="relation_to_head" placeholder="Quan hệ" value={form.relation_to_head || ""} onChange={handleChange} />
 
           <DialogFooter>
             <Button type="button" variant="outline" size="sm" className="bg-white accent-outline transition-transform hover:-translate-y-0.5" onClick={onClose}>
