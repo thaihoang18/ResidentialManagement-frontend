@@ -12,12 +12,20 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "./ui/sidebar"
-import { User, Users, Home, MapPin, Calendar } from "lucide-react"
+import { User, Users, Home, MapPin, Calendar, LogOut } from "lucide-react"
+import { logout } from "@/lib/auth"
+import { useNavigate } from "react-router"
 
 function SideBar() {
   const location = useLocation()
 
   const isActive = (path) => location.pathname === path
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate("/login", { replace: true })
+  }
 
   return (
     <SidebarProvider>
@@ -116,6 +124,16 @@ function SideBar() {
         </SidebarContent>
 
         <SidebarFooter>
+          <div className="px-3 py-2">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-md accent-outline hover:bg-accent"
+            >
+              <LogOut />
+              <span className="text-sm">Đăng xuất</span>
+            </button>
+          </div>
+
           <div className="px-3 py-2 text-xs text-muted-foreground">
             Phiên bản thử nghiệm
           </div>

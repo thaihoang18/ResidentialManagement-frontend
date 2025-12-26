@@ -6,6 +6,8 @@ import Meeting from "./pages/meeting";
 import Household from "./pages/household";
 import Resident from "./pages/resident";
 import SideBar from "./components/SideBar";
+import Login from "./pages/auth/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -15,11 +17,25 @@ function App() {
           <SideBar />
           <main className="flex-1">
             <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="*" element={<NotFound />} />
-              <Route path="/meeting" element={<Meeting />} />
-              <Route path="/household" element={<Household />} />
-              <Route path="/resident" element={<Resident />} />
+              <Route path="/login" element={<Login />} />
+
+              <Route
+                path="/"
+                element={<ProtectedRoute><HomePage /></ProtectedRoute>}
+              />
+              <Route
+                path="/meeting"
+                element={<ProtectedRoute><Meeting /></ProtectedRoute>}
+              />
+              <Route
+                path="/household"
+                element={<ProtectedRoute><Household /></ProtectedRoute>}
+              />
+              <Route
+                path="/resident"
+                element={<ProtectedRoute><Resident /></ProtectedRoute>}
+              />
+              <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
             </Routes>
           </main>
         </div>
