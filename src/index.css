@@ -220,6 +220,17 @@
   color: var(--primary-foreground);
 }
 
+/* Stronger hero gradient for login panel to ensure white text is readable */
+.login-hero {
+  background: linear-gradient(135deg, rgba(var(--primary-rgb),0.95), rgba(var(--primary-rgb),0.8) 60%);
+  color: var(--primary-foreground);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+}
+
+.login-hero .accent-text { color: rgba(255,255,255,0.95); }
+
+.login-hero svg { filter: drop-shadow(0 6px 18px rgba(0,0,0,0.12)); }
+
 .accent-btn {
   background: var(--primary-gradient);
   color: var(--primary-foreground);
