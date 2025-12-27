@@ -11,6 +11,9 @@ export async function login(email, password) {
 
   if (res.ok && data.success) {
     localStorage.setItem("rm_user", JSON.stringify({ email }));
+    try {
+      window.dispatchEvent(new Event('rm_auth_changed'))
+    } catch (e) {}
     return { ok: true, data };
   }
 
@@ -19,6 +22,9 @@ export async function login(email, password) {
 
 export function logout() {
   localStorage.removeItem("rm_user");
+  try {
+    window.dispatchEvent(new Event('rm_auth_changed'))
+  } catch (e) {}
 }
 
 export function isAuthenticated() {

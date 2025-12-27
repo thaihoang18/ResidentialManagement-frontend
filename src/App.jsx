@@ -6,15 +6,26 @@ import Meeting from "./pages/meeting";
 import Household from "./pages/household";
 import Resident from "./pages/resident";
 import SideBar from "./components/SideBar";
-import Login from "./pages/auth/Login";
+import Login from "./pages/auth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { isAuthenticated } from "./lib/auth";
+import { useEffect, useState } from "react";
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <div className="min-h-screen flex bg-background">
-          <SideBar />
+          {/** keep a state so SideBar updates after login/logout */}
+          {(() => {
+            const [authed, setAuthed] = useState(isAuthenticated())
+            useEffect(() => {
+              const onAuth = () => setAuthed(isAuthenticated())
+              window.addEventListener('rm_auth_changed', onAuth)
+              return () => window.removeEventListener('rm_auth_changed', onAuth)
+            }, [])
+            return authed && <SideBar />
+          })()}
           <main className="flex-1">
             <Routes>
               <Route path="/login" element={<Login />} />
