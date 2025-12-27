@@ -32,7 +32,9 @@ function SideBar() {
       <Sidebar side="left" variant="sidebar" collapsible="icon">
         <SidebarHeader>
           <div className="px-3 py-2 text-sm font-semibold header-gradient rounded-md">
-            <div className="accent-text">Quản lý chung cư</div>
+            <Link to="/" className="inline-block w-full">
+              <div className="accent-text">Quản lý chung cư</div>
+            </Link>
           </div>
         </SidebarHeader>
 
