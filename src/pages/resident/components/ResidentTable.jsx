@@ -5,13 +5,20 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import { Edit2, Trash2 } from "lucide-react";
 
 export default function ResidentTable({ data = [], onEdit, onDelete, loading }) {
+  const formatDate = (value) => {
+    if (!value) return "-";
+    const d = new Date(value);
+    if (isNaN(d)) return "-";
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+  };
   const columns = useMemo(
     () => [
       { accessorKey: "id", header: "ID", cell: ({ row }) => row.original.id },
       { accessorKey: "full_name", header: "Họ và tên", cell: ({ row }) => {
         const r = row.original;
-        const idIssueDate = r.id_issue_date ? new Date(r.id_issue_date).toLocaleDateString() : "-";
-        const regDate = r.registration_date ? new Date(r.registration_date).toLocaleDateString() : "-";
+        const idIssueDate = formatDate(r.id_issue_date);
+        const regDate = formatDate(r.registration_date);
         return (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -19,14 +26,14 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
             </TooltipTrigger>
             <TooltipContent sideOffset={6} className="max-w-xs">
               <div>Quê quán: {r.native_place || "-"}</div>
-              <div>Ngày cấp CCCD: {r.id_issue_date ? idIssueDate : "-"}</div>
+              <div>Ngày cấp CCCD: {idIssueDate}</div>
               <div>Nơi cấp CCCD: {r.id_issue_place || "-"}</div>
-              <div>Ngày đăng ký thường trú: {r.registration_date ? regDate : "-"}</div>
+              <div>Ngày đăng ký thường trú: {regDate}</div>
             </TooltipContent>
           </Tooltip>
         );
       }},
-      { accessorKey: "date_of_birth", header: "Ngày sinh", cell: ({ row }) => new Date(row.original.date_of_birth).toLocaleDateString() },
+      { accessorKey: "date_of_birth", header: "Ngày sinh", cell: ({ row }) => formatDate(row.original.date_of_birth) },
       { accessorKey: "place_of_birth", header: "Nơi sinh" },
       { accessorKey: "gender", header: "Giới tính" },
       { accessorKey: "ethnicity", header: "Dân tộc" },
