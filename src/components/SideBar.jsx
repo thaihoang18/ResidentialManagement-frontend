@@ -33,7 +33,10 @@ function SideBar() {
         <SidebarHeader>
           <div className="px-3 py-2 text-sm font-semibold header-gradient rounded-md">
             <Link to="/" className="inline-block w-full">
-              <div className="accent-text">Quản lý chung cư</div>
+              <div className="flex items-center gap-2 accent-text">
+                <Home className="w-5 h-5" />
+                <span className="font-semibold">Trang chủ</span>
+              </div>
             </Link>
           </div>
         </SidebarHeader>
