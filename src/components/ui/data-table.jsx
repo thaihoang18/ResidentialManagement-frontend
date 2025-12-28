@@ -74,7 +74,12 @@ export function DataTable({
   }, [table, table?.getState()?.pagination?.pageIndex, enablePagination]);
 
   function clearFilters() {
+    setGlobalFilter("");
     setColumnFilters([]);
+
+    // keep table internal state consistent even if TanStack changes
+    table.resetGlobalFilter();
+    table.resetColumnFilters();
   }
 
   return (
