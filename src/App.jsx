@@ -32,17 +32,8 @@ function App() {
   return (
     <>
       <BrowserRouter>
-        <div className="min-h-screen flex bg-background">
-          {/** keep a state so SideBar updates after login/logout */}
-          {(() => {
-            const [authed, setAuthed] = useState(isAuthenticated())
-            useEffect(() => {
-              const onAuth = () => setAuthed(isAuthenticated())
-              window.addEventListener('rm_auth_changed', onAuth)
-              return () => window.removeEventListener('rm_auth_changed', onAuth)
-            }, [])
-            return authed && <SideBar />
-          })()}
+        <div className="min-h-screen flex">
+          <SidebarGate />
           <main className="flex-1">
             <Routes>
               <Route path="/login" element={<Login />} />
