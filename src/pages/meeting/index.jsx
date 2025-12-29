@@ -267,22 +267,26 @@ function Meeting() {
     const monthName = new Date(view.year, view.month).toLocaleString(undefined, { month: "long" });
 
         return (
-            <div className="p-6">
-                {loading && <div className="text-center text-gray-500">Đang tải dữ liệu...</div>}
-                {error && <div className="text-center text-red-500">{error}</div>}
-        <CalendarHeader
-          monthName={monthName}
-          year={view.year}
-          onPrev={prevMonth}
-          onNext={nextMonth}
-          onToday={goToday}
-          onAdd={() => setShowForm(true)}
-        />
-        <div className="grid grid-cols-7 gap-1 text-sm">
-          {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
-            <div key={d} className="text-center font-medium py-2 text-gray-600">{d}</div>
-          ))}
-        </div>
+                <div className="p-6">
+                        {loading && <div className="text-center text-muted-foreground">Đang tải dữ liệu...</div>}
+                        {error && <div className="text-center text-destructive">{error}</div>}
+
+                        <CalendarHeader
+                                monthName={monthName}
+                                year={view.year}
+                                onPrev={prevMonth}
+                                onNext={nextMonth}
+                                onToday={goToday}
+                                onAdd={() => setShowForm(true)}
+                        />
+
+                        <div className="grid grid-cols-7 gap-1 text-sm">
+                                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                                        <div key={d} className="text-center font-medium py-2 text-muted-foreground">
+                                                {d}
+                                        </div>
+                                ))}
+                        </div>
                         <CalendarGrid
                             weeks={weeks}
                             month={view.month}

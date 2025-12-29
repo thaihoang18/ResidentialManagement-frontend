@@ -16,7 +16,7 @@ function App() {
   return (
     <>
       <BrowserRouter>
-        <div className="min-h-screen flex bg-background">
+        <div className="min-h-screen flex bg-transparent">
           {/** keep a state so SideBar updates after login/logout */}
           {(() => {
             const [authed, setAuthed] = useState(isAuthenticated())

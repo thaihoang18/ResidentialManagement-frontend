@@ -83,7 +83,7 @@ export function DataTable({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="glass-panel rounded-xl border p-4 space-y-3">
       {enableSearch ? (
         <Input
           value={globalFilter}
@@ -144,7 +144,6 @@ export function DataTable({
         </div>
       ) : null}
 
-      <div className="rounded-md border">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -199,9 +198,9 @@ export function DataTable({
             </TableRow>
           )}
         </TableBody>
-        </Table>
-        </div>
-          {enablePagination ? (
+      </Table>
+
+      {enablePagination ? (
           <div className="flex items-center justify-between space-x-2 pt-2">
             <div className="flex items-center gap-2">
               <Button

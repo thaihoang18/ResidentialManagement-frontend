@@ -100,7 +100,7 @@ export default function StatisticsChart() {
   }));
 
   return (
-    <div className="p-8 bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 min-h-screen">
+    <div className="p-8 min-h-screen">
       <div className="mb-10">
         <div className="inline-block mb-3">
           <h2 className="px-4 py-1.5 bg-teal-100 text-teal-600 rounded-full text-2xl font-bold">PHÂN TÍCH DÂN SỐ</h2>
