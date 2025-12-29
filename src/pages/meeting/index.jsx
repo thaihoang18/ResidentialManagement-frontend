@@ -3,7 +3,8 @@ import CalendarHeader from "./components/CalendarHeader";
 import CalendarGrid from "./components/CalendarGrid";
 import DayDetailModal from "./components/DayDetailModal";
 import EventFormModal from "./components/EventFormModal";
-import EventDetailModal from "./components/EventDetailModal";
+import AttendanceModal from "./components/AttendanceModal";
+import AttendanceQrModal from "./components/AttendanceQrModal";
 
 function formatDate(date) {
     return date.toISOString().slice(0, 10);
@@ -128,8 +129,212 @@ function Meeting() {
         tasks: "",
         creator_id: 1
     });
-    const [selectedEvent, setSelectedEvent] = useState(null);
     const [selectedDay, setSelectedDay] = useState(null); // for day detail popup
+
+    const [showAttendance, setShowAttendance] = useState(false);
+    const [attendanceEvent, setAttendanceEvent] = useState(null);
+
+    const [showQr, setShowQr] = useState(false);
+    const [qrEvent, setQrEvent] = useState(null);
+
+        function escapeHtml(value) {
+                return String(value ?? "")
+                        .replaceAll("&", "&amp;")
+                        .replaceAll("<", "&lt;")
+                        .replaceAll(">", "&gt;")
+                        .replaceAll('"', "&quot;")
+                        .replaceAll("'", "&#039;");
+        }
+
+        function formatDateDdMmYyyy(yyyyMmDd) {
+                if (!yyyyMmDd || typeof yyyyMmDd !== "string") return "-";
+                const parts = yyyyMmDd.split("-");
+                if (parts.length !== 3) return yyyyMmDd;
+                const [y, m, d] = parts;
+                if (!y || !m || !d) return yyyyMmDd;
+                return `${d}/${m}/${y}`;
+        }
+
+        function buildInvitationHtml({ meeting, households }) {
+                const meetingTitle = escapeHtml(meeting?.title || "");
+                const meetingDate = escapeHtml(formatDateDdMmYyyy(meeting?.date));
+                const meetingTime = escapeHtml(meeting?.time || "-");
+                const meetingLocation = escapeHtml(meeting?.location || "-");
+                const meetingDescription = escapeHtml(meeting?.description || "");
+                const tasks = Array.isArray(meeting?.tasks) ? meeting.tasks : [];
+
+                const pages = (households || []).map((h) => {
+                        const householdCode = escapeHtml(h?.household_code || "-");
+                        const headName = escapeHtml(h?.head_name || "-");
+                        const addressRaw = [h?.house_number, h?.street].filter(Boolean).join(" ").trim();
+                        const address = escapeHtml(addressRaw || "-");
+
+                        const tasksHtml = tasks.length
+                                ? `<div class="row"><div class="label">Công việc:</div><div class="value"><ul>${tasks
+                                            .map((t) => `<li>${escapeHtml(t)}</li>`)
+                                            .join("")}</ul></div></div>`
+                                : "";
+
+                        const descriptionHtml = meetingDescription
+                                ? `<div class="row"><div class="label">Nội dung:</div><div class="value"><div class="pre">${meetingDescription}</div></div></div>`
+                                : "";
+
+                        return `
+                            <section class="page">
+                                <div class="top">
+                                    <div class="left">
+                                        <div class="org">BAN QUẢN LÝ KHU DÂN CƯ</div>
+                                        <div class="ref">Số: ...../GM</div>
+                                    </div>
+                                    <div class="right">
+                                        <div class="country">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                                        <div class="motto">Độc lập - Tự do - Hạnh phúc</div>
+                                        <div class="line"></div>
+                                    </div>
+                                </div>
+
+                                <h1 class="title">GIẤY MỜI</h1>
+                                <div class="subtitle">V/v: Tham dự cuộc họp</div>
+
+                                <div class="section">
+                                    <div class="row"><div class="label">Kính gửi</div><div class="value">: Ông/Bà <span class="em">${headName}</span></div></div>
+                                    <div class="row"><div class="label">Mã hộ</div><div class="value">: ${householdCode}</div></div>
+                                    <div class="row"><div class="label">Địa chỉ</div><div class="value">: ${address}</div></div>
+                                </div>
+
+                                <div class="section">
+                                    <div class="row"><div class="label">Chủ đề</div><div class="value">: <span class="em">${meetingTitle || "-"}</span></div></div>
+                                    <div class="row"><div class="label">Thời gian</div><div class="value">: ${meetingTime} ngày ${meetingDate}</div></div>
+                                    <div class="row"><div class="label">Địa điểm</div><div class="value">: ${meetingLocation}</div></div>
+                                    ${descriptionHtml}
+                                    ${tasksHtml}
+                                </div>
+
+                                <div class="note">
+                                    Kính đề nghị Ông/Bà thu xếp thời gian tham dự đầy đủ, đúng giờ.
+                                </div>
+
+                                <div class="footer">
+                                    <div class="sign">
+                                        <div class="place">Ngày ..... tháng ..... năm .....</div>
+                                        <div class="signTitle">ĐẠI DIỆN BAN TỔ CHỨC</div>
+                                        <div class="muted">(Ký và ghi rõ họ tên)</div>
+                                    </div>
+                                </div>
+                            </section>
+                        `;
+                });
+
+                return `
+                    <!doctype html>
+                    <html lang="vi">
+                        <head>
+                            <meta charset="utf-8" />
+                            <meta name="viewport" content="width=device-width, initial-scale=1" />
+                            <title>Giấy mời - ${meetingTitle || "Cuộc họp"}</title>
+                            <style>
+                                @page { size: A4; margin: 18mm; }
+                                html, body { padding: 0; margin: 0; }
+                                body { color: #000; font-size: 14px; line-height: 1.45; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+                                .page { min-height: 100vh; }
+                                .page { page-break-after: always; }
+                                .page:last-child { page-break-after: auto; }
+                                .top { display: flex; justify-content: space-between; gap: 16px; }
+                                .top .left { width: 42%; }
+                                .top .right { width: 58%; text-align: center; }
+                                .org { font-weight: 700; text-transform: uppercase; }
+                                .ref { margin-top: 2px; }
+                                .country { font-weight: 700; text-transform: uppercase; }
+                                .motto { margin-top: 2px; }
+                                .line { margin: 8px auto 0; width: 62%; border-top: 1px solid #000; }
+                                .title { margin: 18px 0 4px; text-align: center; font-size: 22px; letter-spacing: 0.6px; font-weight: 800; }
+                                .subtitle { text-align: center; margin-bottom: 14px; font-style: italic; }
+                                .section { margin-top: 12px; padding-top: 8px; border-top: 1px solid #000; }
+                                .section:first-of-type { border-top: 0; padding-top: 0; }
+                                .row { display: flex; gap: 10px; margin: 7px 0; }
+                                .label { width: 95px; flex: 0 0 95px; font-weight: 600; }
+                                .value { flex: 1 1 auto; }
+                                .em { font-weight: 700; }
+                                .pre { white-space: pre-wrap; }
+                                ul { margin: 4px 0 0; padding-left: 18px; }
+                                .note { margin-top: 14px; padding-top: 10px; border-top: 1px dashed #000; }
+                                .footer { margin-top: 26px; display: flex; justify-content: flex-end; }
+                                .sign { width: 46%; text-align: center; }
+                                .place { margin-bottom: 6px; }
+                                .signTitle { font-weight: 800; margin-top: 6px; }
+                                .muted { margin-top: 4px; }
+                                @media print {
+                                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            ${pages.join("\n") || "<div>Không có hộ gia đình để in.</div>"}
+                        </body>
+                    </html>
+                `;
+        }
+
+        async function printInvitationsForMeeting(meetingEvent) {
+                if (!meetingEvent?.id) return;
+            setError(null);
+
+            setLoading(true);
+                try {
+                        const res = await fetch("/api/households");
+                        if (!res.ok) throw new Error("Không thể tải danh sách hộ gia đình để in giấy mời");
+                        const data = await res.json();
+                        const households = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+                        const html = buildInvitationHtml({ meeting: meetingEvent, households });
+
+                // Print in the current tab via hidden iframe (no new tab/window)
+                const iframe = document.createElement("iframe");
+                iframe.style.position = "fixed";
+                iframe.style.right = "0";
+                iframe.style.bottom = "0";
+                iframe.style.width = "0";
+                iframe.style.height = "0";
+                iframe.style.border = "0";
+                iframe.setAttribute("aria-hidden", "true");
+                document.body.appendChild(iframe);
+
+                let didPrint = false;
+                iframe.onload = () => {
+                    if (didPrint) return;
+                    didPrint = true;
+                    const win = iframe.contentWindow;
+                    if (!win) {
+                        setTimeout(() => iframe.remove(), 500);
+                        return;
+                    }
+
+                    const cleanup = () => setTimeout(() => iframe.remove(), 500);
+                    try {
+                        win.addEventListener?.("afterprint", cleanup, { once: true });
+                    } catch {
+                        // ignore
+                    }
+
+                    // Let layout settle then print once
+                    setTimeout(() => {
+                        try {
+                            win.focus?.();
+                            win.print?.();
+                        } finally {
+                            // in case afterprint doesn't fire
+                            setTimeout(cleanup, 2000);
+                        }
+                    }, 50);
+                };
+
+                // Use srcdoc to avoid navigation
+                iframe.srcdoc = html;
+                } catch (e) {
+                        setError(e.message);
+                } finally {
+                        setLoading(false);
+                }
+        }
 
     // Open form for add
     function openAdd(day) {
@@ -240,10 +445,6 @@ function Meeting() {
     }
 
 
-    function openEvent(ev) {
-        setSelectedEvent(ev);
-    }
-
     function openDayDetail(day) {
         setSelectedDay(day);
     }
@@ -256,7 +457,6 @@ function Meeting() {
             if (!res.ok) throw new Error("Không thể xóa cuộc họp");
             // reload list from server to ensure client/server synchronized (handles newly-created items)
             await loadMeetings();
-            setSelectedEvent(null);
         } catch (e) {
             setError(e.message);
         } finally {
@@ -292,14 +492,35 @@ function Meeting() {
                             month={view.month}
                             events={events}
                             onDayDetail={openDayDetail}
-                            onEventClick={openEvent}
                             onAdd={openAdd}
                         />
         <DayDetailModal
           day={selectedDay}
           events={events}
           onClose={() => setSelectedDay(null)}
-          onEventClick={(ev) => { setSelectedEvent(ev); setSelectedDay(null); }}
+                    onQr={(ev) => {
+                        setSelectedDay(null);
+                        setQrEvent(ev);
+                        setShowQr(true);
+                    }}
+                    onPrintInvite={(ev) => {
+                        setSelectedDay(null);
+                        printInvitationsForMeeting(ev);
+                    }}
+                    onAttendance={(ev) => {
+                        setSelectedDay(null);
+                        setAttendanceEvent(ev);
+                        setShowAttendance(true);
+                    }}
+                    onEdit={(ev) => {
+                        setSelectedDay(null);
+                        openEdit(ev);
+                    }}
+                    onDelete={async (ev) => {
+                        // keep UX simple: close modal then delete
+                        setSelectedDay(null);
+                        await deleteEvent(ev.id);
+                    }}
         />
                 <EventFormModal
                     show={showForm}
@@ -320,25 +541,21 @@ function Meeting() {
                     }}
                     onSubmit={submitForm}
                 />
-                <EventDetailModal
-                    event={selectedEvent}
-                    onClose={() => setSelectedEvent(null)}
-                    onDelete={deleteEvent}
-                    onEdit={() => {
-                        if (selectedEvent) {
-                            setSelectedEvent(null); // Hide detail modal
-                            setForm({
-                                id: selectedEvent.id,
-                                title: selectedEvent.title,
-                                date: selectedEvent.date,
-                                time: selectedEvent.time,
-                                location: selectedEvent.location,
-                                description: selectedEvent.description,
-                                tasks: selectedEvent.tasks ? selectedEvent.tasks.join('; ') : '',
-                                creator_id: selectedEvent.creator_id || 1
-                            });
-                            setShowForm(true);
-                        }
+                <AttendanceModal
+                    open={showAttendance}
+                    meeting={attendanceEvent}
+                    onClose={() => {
+                        setShowAttendance(false);
+                        setAttendanceEvent(null);
+                    }}
+                />
+
+                <AttendanceQrModal
+                    open={showQr}
+                    meeting={qrEvent}
+                    onClose={() => {
+                        setShowQr(false);
+                        setQrEvent(null);
                     }}
                 />
       </div>
