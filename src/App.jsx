@@ -32,7 +32,7 @@ function App() {
   return (
     <>
       <BrowserRouter>
-        <div className="min-h-screen flex bg-background">
+        <div className="min-h-screen flex">
           <SidebarGate />
           <main className="flex-1">
             <Routes>

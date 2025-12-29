@@ -26,7 +26,7 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="bg-card rounded-lg p-8 shadow-lg border">
+    <div className="glass-panel rounded-xl p-8 border">
       <div className="mb-6 flex flex-col items-start">
         <div className="text-2xl font-bold text-foreground">Đăng nhập</div>
         <div className="text-sm text-muted-foreground">Nhập email và mật khẩu của bạn để bắt đầu</div>

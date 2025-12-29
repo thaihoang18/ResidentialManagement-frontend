@@ -33,8 +33,37 @@
   --primary-dark: #009e88;
   --primary-light: #33e6cf;
   --primary-foreground: #ffffff;
-  --primary-gradient: linear-gradient(90deg,#00c2a8 0%,#009e88 100%);
-  --primary-shadow: 0 6px 14px rgba(var(--primary-rgb),0.025);
+  /* Added brand accents: magenta + cyan, mixed with current primary */
+  --brand-magenta: #d8318d;
+  --brand-magenta-rgb: 216,49,141;
+  --brand-cyan: #31b9d8;
+  --brand-cyan-rgb: 49,185,216;
+
+  /* Active/button gradient: 2 colors only (primary -> cyan) */
+  --primary-gradient: linear-gradient(90deg, var(--primary) 0%, var(--brand-cyan) 100%);
+  --brand-gradient: linear-gradient(120deg, var(--primary) 0%, var(--brand-cyan) 48%, var(--brand-magenta) 100%);
+  --primary-shadow: 0 10px 26px rgba(var(--primary-rgb),0.06);
+
+  /* Glassmorphism tokens */
+  /* User preference: frosted WHITE glass floating over gradient background */
+  /* More opaque so text is easier to read */
+  --glass-bg: rgba(255,255,255,0.58);
+  --glass-bg-strong: rgba(255,255,255,0.70);
+  --glass-surface: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.68) 0%,
+    rgba(255,255,255,0.50) 100%
+  );
+  --glass-highlight:
+    radial-gradient(120% 85% at 12% 10%, rgba(255,255,255,0.46) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(120% 95% at 88% 0%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 72%);
+  --glass-border: rgba(17,24,39,0.22);
+  /* Restore outer shadow, but keep it soft to avoid ugly dark bands */
+  --glass-shadow:
+    0 16px 48px rgba(17,24,39,0.10),
+    0 6px 18px rgba(17,24,39,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.38),
+    inset 0 -1px 0 rgba(255,255,255,0.10);
 
   /* hover / subtle backgrounds (very low alpha) */
   --primary-hover-bg: rgba(var(--primary-rgb),0.025);
@@ -73,6 +102,84 @@
      - max 180px
   */
   --calendar-cell-height: clamp(100px, calc((100vh - 260px) / 6), 180px);
+}
+
+html,
+body {
+  min-height: 100%;
+  background-color: var(--background);
+}
+
+/* Global aurora background: mixes primary + cyan + magenta subtly */
+body {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--background);
+  background:
+    radial-gradient(980px 560px at 10% 0%, rgba(var(--brand-magenta-rgb), 0.22) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(980px 560px at 92% 8%, rgba(var(--brand-cyan-rgb), 0.10) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(980px 560px at 88% 112%, rgba(var(--brand-magenta-rgb), 0.16) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(980px 560px at 55% 110%, rgba(var(--primary-rgb), 0.10) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(1100px 680px at 50% 35%, rgba(var(--primary-rgb), 0.04) 0%, rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,1) 58%);
+  background-attachment: fixed;
+}
+
+/* Ensure all app content stays above animated background layers */
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Background layers are intentionally static (no motion) */
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -60%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    conic-gradient(
+      from 220deg at 50% 50%,
+      rgba(var(--primary-rgb), 1) 0%,
+      rgba(var(--brand-cyan-rgb), 1) 22%,
+      rgba(var(--brand-magenta-rgb), 1) 55%,
+      rgba(var(--brand-magenta-rgb), 1) 78%,
+      rgba(var(--primary-rgb), 1) 100%
+    ),
+    radial-gradient(closest-side at 18% 18%, rgba(var(--brand-cyan-rgb), 0.55) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(closest-side at 82% 24%, rgba(var(--brand-magenta-rgb), 0.98) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(closest-side at 32% 86%, rgba(var(--brand-magenta-rgb), 0.55) 0%, rgba(255,255,255,0) 66%),
+    radial-gradient(closest-side at 55% 86%, rgba(var(--primary-rgb), 0.55) 0%, rgba(255,255,255,0) 64%);
+  background-size: 260% 260%;
+  background-position: 35% 50%;
+  opacity: 0.090;
+  filter: blur(110px) saturate(1.16);
+  transform: translate3d(0, 0, 0);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: -65%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    conic-gradient(
+      from 120deg at 60% 42%,
+      rgba(var(--brand-magenta-rgb), 1) 0%,
+      rgba(var(--primary-rgb), 1) 40%,
+      rgba(var(--brand-cyan-rgb), 0.90) 62%,
+      rgba(var(--brand-magenta-rgb), 1) 100%
+    ),
+    radial-gradient(closest-side at 70% 20%, rgba(var(--primary-rgb), 0.40) 0%, rgba(255,255,255,0) 64%),
+    radial-gradient(closest-side at 28% 78%, rgba(var(--brand-magenta-rgb), 0.78) 0%, rgba(255,255,255,0) 66%);
+  background-size: 320% 320%;
+  background-position: 65% 45%;
+  opacity: 0.070;
+  filter: blur(145px) saturate(1.14);
+  transform: translate3d(0, 0, 0);
 }
 
 /* Grid rows fixed to calendar cell height so all cells in all months stay same size */
@@ -126,6 +233,11 @@
 
 /* dành cho các item có event-accent (vệt tím trái): hover làm nền nhạt hơn */
 .event-accent:hover {
+  background: linear-gradient(90deg, rgba(var(--primary-rgb),0.02), rgba(255,255,255,0));
+}
+
+/* Sidebar hover should be very subtle like event rows */
+.sidebar-hover-soft:hover {
   background: linear-gradient(90deg, rgba(var(--primary-rgb),0.02), rgba(255,255,255,0));
 }
 
@@ -215,21 +327,133 @@
   background: linear-gradient(180deg, rgba(var(--primary-rgb),0.015), rgba(255,255,255,1));
 }
 
+/* Glass header (safe for non-scroll areas like page headers) */
+.glass-header {
+  background: var(--glass-surface), var(--glass-bg-strong) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(34px) saturate(1.22) contrast(1.04);
+  -webkit-backdrop-filter: blur(34px) saturate(1.22) contrast(1.04);
+}
+
+/* Page headers: add depth with subtle aurora glows + sheen (uses existing theme variables only) */
+.page-header {
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 85% at 10% 15%, rgba(var(--brand-magenta-rgb), 0.14) 0%, rgba(255,255,255,0) 60%),
+    radial-gradient(120% 85% at 90% 0%, rgba(var(--brand-cyan-rgb), 0.14) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(100% 90% at 55% 110%, rgba(var(--primary-rgb), 0.10) 0%, rgba(255,255,255,0) 62%);
+  filter: blur(20px);
+  opacity: 0.95;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0) 38%),
+    linear-gradient(180deg, rgba(255,255,255,0.66) 0%, rgba(255,255,255,0) 55%);
+  opacity: 0.65;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.page-header > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Sidebar header Home link: no hover lift, only a soft highlight */
+.header-home-link {
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
+.header-home-link:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--primary-rgb), 0.06) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  box-shadow: inset 2px 0 0 rgba(var(--primary-rgb), 0.55);
+  transform: none !important;
+}
+
+/* Subtle artistic background for the sidebar (uses existing theme variables only) */
+.sidebar-art [data-slot="sidebar-inner"] {
+  background:
+    radial-gradient(
+      140% 80% at 10% 0%,
+      rgba(var(--brand-cyan-rgb), 0.06) 0%,
+      rgba(255, 255, 255, 0) 55%
+    ),
+    radial-gradient(
+      140% 80% at 90% 10%,
+      rgba(var(--brand-magenta-rgb), 0.05) 0%,
+      rgba(255, 255, 255, 0) 58%
+    ),
+    radial-gradient(
+      120% 70% at 20% 0%,
+      rgba(var(--primary-rgb), 0.06) 0%,
+      rgba(255, 255, 255, 0) 55%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(var(--primary-rgb), 0.04) 0%,
+      rgba(255, 255, 255, 0) 55%
+    ),
+    var(--sidebar);
+}
+
+.sidebar-art [data-slot="sidebar-inner"] {
+  border-color: rgba(var(--primary-rgb), 0.06);
+}
+
+/* Premium sidebar nav button styling (visible hover + strong active) */
+.sidebar-nav-btn {
+  color: var(--primary-dark);
+  border-color: rgba(var(--primary-rgb), 0.06) !important;
+  transition: background 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.sidebar-nav-btn:hover {
+  background: linear-gradient(
+      90deg,
+      rgba(var(--primary-rgb), 0.10) 0%,
+      rgba(var(--primary-rgb), 0.035) 30%,
+      rgba(255, 255, 255, 0) 78%
+    ) !important;
+  border-color: rgba(var(--primary-rgb), 0.12) !important;
+  box-shadow: inset 2px 0 0 rgba(var(--primary-rgb), 0.55);
+}
+
+/* SidebarMenuButton renders data-active="true" when isActive */
+.sidebar-nav-btn[data-active="true"] {
+  background: var(--primary-gradient) !important;
+  color: var(--primary-foreground) !important;
+  border-color: rgba(var(--primary-rgb), 0.18) !important;
+  box-shadow: var(--primary-shadow), inset 2px 0 0 rgba(255, 255, 255, 0.22);
+}
+
+.sidebar-nav-btn[data-active="true"]:hover {
+  filter: brightness(1.01);
+}
+
 .accent-gradient-bg {
   background: var(--primary-gradient);
   color: var(--primary-foreground);
 }
-
-/* Stronger hero gradient for login panel to ensure white text is readable */
-.login-hero {
-  background: linear-gradient(135deg, rgba(var(--primary-rgb),0.95), rgba(var(--primary-rgb),0.8) 60%);
-  color: var(--primary-foreground);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-}
-
-.login-hero .accent-text { color: rgba(255,255,255,0.95); }
-
-.login-hero svg { filter: drop-shadow(0 6px 18px rgba(0,0,0,0.12)); }
 
 .accent-btn {
   background: var(--primary-gradient);
@@ -237,6 +461,130 @@
   box-shadow: var(--primary-shadow);
   border: 0;
 }
+
+/* Glass surfaces (cards, dialogs, sheets, popovers, and table containers) */
+[data-slot="card"],
+[data-slot="dialog-content"],
+[data-slot="sheet-content"],
+[data-slot="popover-content"],
+[data-slot="table-container"],
+.glass-panel {
+  border-color: var(--glass-border) !important;
+  background: transparent !important;
+  box-shadow: var(--glass-shadow);
+}
+
+/* Only static containers need explicit positioning for glass pseudo-layers.
+   Do NOT override Radix positioning (Dialog/Sheet/Popover) or they'll stop centering/anchoring. */
+[data-slot="card"],
+[data-slot="table-container"],
+.glass-panel {
+  position: relative;
+}
+
+[data-slot="card"]::before,
+[data-slot="dialog-content"]::before,
+[data-slot="sheet-content"]::before,
+[data-slot="popover-content"]::before,
+[data-slot="table-container"]::before,
+.glass-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--glass-surface), var(--glass-bg);
+  backdrop-filter: blur(48px) saturate(1.32) contrast(1.04);
+  -webkit-backdrop-filter: blur(48px) saturate(1.32) contrast(1.04);
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-slot="card"]::after,
+[data-slot="dialog-content"]::after,
+[data-slot="sheet-content"]::after,
+[data-slot="popover-content"]::after,
+[data-slot="table-container"]::after,
+.glass-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--glass-highlight);
+  opacity: 0.10;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Safety: keep Radix dialogs centered even if other global styles interfere */
+[data-slot="dialog-content"] {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  --tw-translate-x: -50% !important;
+  --tw-translate-y: -50% !important;
+}
+
+/*
+  IMPORTANT: Avoid black/dark edge artifacts while scrolling.
+  On Chrome/Edge, `backdrop-filter` + scrolling/clipping containers can produce
+  dark bands at the top/right edges. Data tables use `.glass-panel`, so we
+  render it as translucent glass WITHOUT backdrop-filter.
+*/
+.glass-panel {
+  background: var(--glass-surface), var(--glass-bg) !important;
+}
+
+.glass-panel::before {
+  display: none;
+}
+
+[data-slot="card"] > *,
+[data-slot="dialog-content"] > *,
+[data-slot="sheet-content"] > *,
+[data-slot="popover-content"] > *,
+[data-slot="table-container"] > *,
+.glass-panel > * {
+  position: relative;
+  z-index: 2;
+}
+
+[data-slot="table-container"] {
+  border: 1px solid var(--glass-border);
+  border-radius: 0.75rem;
+}
+
+/* When a table is inside a glass panel (DataTable), keep only the outer panel glass */
+.glass-panel [data-slot="table-container"] {
+  background: transparent !important;
+  border: 0;
+  box-shadow: none;
+  /* Critical: avoid black overlay artifacts while scrolling clipped content */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: visible;
+  isolation: auto;
+}
+
+.glass-panel [data-slot="table-container"]::before {
+  display: none;
+}
+
+.glass-panel [data-slot="table-container"]::after {
+  display: none;
+}
+
+/* Login hero: richer brand gradient */
+.login-hero {
+  background: linear-gradient(135deg, rgba(var(--primary-rgb),0.94) 0%, rgba(var(--brand-cyan-rgb),0.90) 100%);
+  color: var(--primary-foreground);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.10);
+}
+
+.login-hero .accent-text { color: rgba(255,255,255,0.95); }
+
+.login-hero svg { filter: drop-shadow(0 6px 18px rgba(0,0,0,0.12)); }
 
 .accent-outline {
   border-color: rgba(var(--primary-rgb),0.05);
@@ -305,14 +653,14 @@
   position: absolute;
   right: 8px;
   bottom: 8px;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 8px;
+  display: grid;
+  place-items: center;
+  text-align: center;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1;
   box-shadow: 0 3px 8px rgba(0,0,0,0.05);
