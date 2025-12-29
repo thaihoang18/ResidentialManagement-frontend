@@ -53,7 +53,7 @@ export default function ResidentPage() {
   };
 
   return (
-    <div className="p-4 p-6">
+    <div className="p-6">
       <ResidentHeader onCreate={handleCreate} />
       <ResidentTable
         data={residents}
