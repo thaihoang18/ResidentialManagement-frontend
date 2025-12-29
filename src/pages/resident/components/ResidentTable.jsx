@@ -65,6 +65,8 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
       columns={columns}
       data={data}
       loading={loading}
+      enablePagination
+      pageSize={20}
       enableSearch
       searchPlaceholder="Tìm theo tên, số CMND, nơi sinh..."
       enableFilters

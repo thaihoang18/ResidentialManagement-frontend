@@ -76,6 +76,8 @@ export default function HouseholdTable({ data, onEdit, onDelete, onSplit }) {
     <DataTable
       columns={columns}
       data={data}
+      enablePagination
+      pageSize={20}
       enableSearch
       searchPlaceholder="Tìm theo mã hộ, số nhà, tên đường, chủ hộ..."
       enableFilters

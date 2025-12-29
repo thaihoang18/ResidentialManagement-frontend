@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import Meeting from "./pages/meeting";
 import Household from "./pages/household";
 import Resident from "./pages/resident";
+import TemporaryStayLeave from "./pages/temporaryStayLeave";
 import SideBar from "./components/SideBar";
 import Login from "./pages/auth";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -45,6 +46,10 @@ function App() {
               <Route
                 path="/resident"
                 element={<ProtectedRoute><Resident /></ProtectedRoute>}
+              />
+              <Route
+                path="/temporary"
+                element={<ProtectedRoute><TemporaryStayLeave /></ProtectedRoute>}
               />
               <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
             </Routes>
