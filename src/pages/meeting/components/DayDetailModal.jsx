@@ -19,7 +19,23 @@ export default function DayDetailModal({
     return `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
   }
   const iso = getLocalDateString(day);
-  const dayEvents = events.filter(ev => ev.date === iso);
+  function timeToMinutes(value) {
+    if (!value || typeof value !== "string") return Number.POSITIVE_INFINITY;
+    const [hhStr, mmStr] = value.split(":");
+    const hh = Number.parseInt(hhStr, 10);
+    const mm = Number.parseInt(mmStr, 10);
+    if (!Number.isFinite(hh) || !Number.isFinite(mm)) return Number.POSITIVE_INFINITY;
+    return hh * 60 + mm;
+  }
+
+  const dayEvents = events
+    .filter((ev) => ev.date === iso)
+    .sort((a, b) => {
+      const ta = timeToMinutes(a?.time);
+      const tb = timeToMinutes(b?.time);
+      if (ta !== tb) return ta - tb;
+      return String(a?.title ?? "").localeCompare(String(b?.title ?? ""));
+    });
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div
