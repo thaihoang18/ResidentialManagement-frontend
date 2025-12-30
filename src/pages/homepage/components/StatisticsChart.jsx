@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const COLORS = ['#00c2a8', '#e052a2', '#64748b', '#0f766e', '#06b6d4', '#fbbf24'];
+const COLORS = ['#31b9d8', '#f9a8d4', '#64748b', '#0f766e', '#06b6d4', '#fbbf24'];
 
 export default function StatisticsChart() {
   const [statistics, setStatistics] = useState(null);
@@ -248,7 +248,7 @@ export default function StatisticsChart() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-center h-64">
-              <p className="text-gray-500">Đang tải...</p>
+              <p className="text-muted-foreground">Đang tải...</p>
             </div>
           </CardContent>
         </Card>
@@ -258,7 +258,7 @@ export default function StatisticsChart() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-center h-64">
-              <p className="text-gray-500">Đang tải...</p>
+              <p className="text-muted-foreground">Đang tải...</p>
             </div>
           </CardContent>
         </Card>
@@ -284,7 +284,7 @@ export default function StatisticsChart() {
             <p className="text-red-500">Lỗi: {error}</p>
             <button
               onClick={fetchStatistics}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="mt-4 px-4 py-2 rounded-md accent-btn action-btn"
             >
               Thử lại
             </button>
@@ -300,8 +300,8 @@ export default function StatisticsChart() {
 
   // Chuẩn bị dữ liệu cho biểu đồ giới tính
   const genderData = [
-    { name: 'Nam', value: statistics.byGender?.male || 0, color: '#00c2a8' },
-    { name: 'Nữ', value: statistics.byGender?.female || 0, color: '#e052a2' },
+    { name: 'Nam', value: statistics.byGender.male || 0, color: '#31b9d8' },
+    { name: 'Nữ', value: statistics.byGender.female || 0, color: '#f9a8d4' },
   ];
 
   // Chuẩn bị dữ liệu cho biểu đồ độ tuổi
@@ -399,7 +399,7 @@ export default function StatisticsChart() {
                   labelLine={false}
                   label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   outerRadius={90}
-                  fill="#00c2a8"
+                  fill="#31b9d8"
                   dataKey="value"
                   animationBegin={0}
                   animationDuration={600}
@@ -413,16 +413,16 @@ export default function StatisticsChart() {
               </PieChart>
             </ResponsiveContainer>
             <div className="mt-6 space-y-3">
-              <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-teal-100 hover:border-teal-300 hover:bg-teal-50 transition-all">
+              <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-cyan-100 hover:border-cyan-300 hover:bg-cyan-50 transition-all">
                 <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full" style={{backgroundColor: '#00c2a8'}}></div>
+                  <div className="w-5 h-5 rounded-full" style={{backgroundColor: '#31b9d8'}}></div>
                   <span className="text-slate-700 font-medium">Nam</span>
                 </div>
-                <span className="font-bold text-teal-600 text-lg">{statistics.byGender.male || 0}</span>
+                <span className="font-bold text-cyan-600 text-lg">{statistics.byGender.male || 0}</span>
               </div>
               <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-pink-100 hover:border-pink-300 hover:bg-pink-50 transition-all">
                 <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full" style={{backgroundColor: '#e052a2'}}></div>
+                  <div className="w-5 h-5 rounded-full" style={{backgroundColor: '#f9a8d4'}}></div>
                   <span className="text-slate-700 font-medium">Nữ</span>
                 </div>
                 <span className="font-bold text-pink-600 text-lg">{statistics.byGender.female || 0}</span>

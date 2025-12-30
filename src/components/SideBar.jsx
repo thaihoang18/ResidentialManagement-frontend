@@ -68,7 +68,7 @@ function SideBar() {
     <SidebarProvider>
       <Sidebar side="left" variant="floating" collapsible="icon" className="sidebar-art">
         <SidebarHeader className="pb-1">
-          <div className="header-gradient rounded-xl border border-sidebar-border bg-sidebar px-4 py-3">
+          <div className="header-gradient glass-header rounded-xl border border-sidebar-border px-4 py-3">
             <Link to="/" className="header-home-link block w-full rounded-lg px-3 py-2">
               <div className="flex items-center gap-3">
                 <Home className="w-6 h-6 text-[color:var(--primary-dark)]" />

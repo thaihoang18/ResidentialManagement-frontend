@@ -81,30 +81,43 @@ export default function TemporaryStayLeaveTable({ data = [], onEdit, onDelete, l
       },
       {
         id: "actions",
-        header: "Thao tác",
+        header: () => <div className="text-right">Thao tác</div>,
         enableSorting: false,
         enableGlobalFilter: false,
         enableColumnFilter: false,
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onEdit(row.original)}
-              title="Sửa"
-              className="bg-white accent-text transition-transform hover:-translate-y-0.5"
-            >
-              <Edit2 className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(row.original)}
-              title="Xóa"
-              className="bg-white accent-text transition-transform hover:-translate-y-0.5"
-            >
-              <Trash2 className="w-4 h-4 text-red-600" />
-            </Button>
+          <div className="flex items-center justify-end gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onEdit(row.original)}
+                  aria-label="Sửa"
+                  className="accent-text"
+                >
+                  <Edit2 />
+                  <span className="sr-only">Sửa</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>Sửa</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => onDelete(row.original)}
+                  aria-label="Xóa"
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 />
+                  <span className="sr-only">Xóa</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>Xóa</TooltipContent>
+            </Tooltip>
           </div>
         ),
       },
@@ -117,6 +130,8 @@ export default function TemporaryStayLeaveTable({ data = [], onEdit, onDelete, l
       columns={columns}
       data={data}
       loading={loading}
+      enablePagination
+      pageSize={20}
       enableSearch
       searchPlaceholder="Tìm theo tên nhân khẩu, CCCD/CMND..."
       enableFilters
@@ -129,7 +144,7 @@ export default function TemporaryStayLeaveTable({ data = [], onEdit, onDelete, l
           placeholder: "Nhập tên / CCCD / ID...",
         },
       ]}
-      rowClassName="hover:bg-teal-50"
+      rowClassName="table-row-hover"
     />
   );
 }
