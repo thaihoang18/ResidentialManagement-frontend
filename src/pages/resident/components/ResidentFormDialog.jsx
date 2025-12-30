@@ -92,7 +92,6 @@ useEffect(() => {
 }, [open]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  const handleDateChange = (name) => (nextValue) => setForm({ ...form, [name]: nextValue });
 
   const handleDateChange = (name, value) => {
     setDisplayDates((s) => ({ ...s, [name]: value }));
