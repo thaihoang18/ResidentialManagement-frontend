@@ -20,8 +20,8 @@ export default function DayCell({ day, isCurrentMonth, isToday, events, onDayDet
         hasEvents
           ? "daycell-has-events"
           : isCurrentMonth
-            ? "bg-background/60 hover:bg-accent/40 border border-border/40 shadow-xs hover:shadow-sm transition-shadow"
-            : "bg-muted/30 text-muted-foreground border border-border/20 shadow-xs"
+            ? "bg-background/60 table-row-hover hover:bg-transparent border border-border/40 shadow-xs hover:shadow-sm transition-shadow"
+            : "bg-muted/30 text-muted-foreground table-row-hover hover:bg-transparent border border-border/20 shadow-xs"
       } ${!isCurrentMonth ? 'outside-month' : ''}`}
       onClick={openDetail}
       role="button"
