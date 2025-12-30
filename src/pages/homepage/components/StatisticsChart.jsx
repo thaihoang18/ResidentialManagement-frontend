@@ -177,8 +177,8 @@ export default function StatisticsChart() {
 
   // Chuẩn bị dữ liệu cho biểu đồ giới tính
   const genderData = [
-    { name: 'Nam', value: statistics.byGender.male || 0, color: '#00c2a8' },
-    { name: 'Nữ', value: statistics.byGender.female || 0, color: '#e052a2' },
+    { name: 'Nam', value: statistics.byGender.male || 0, color: '#31b9d8' },
+    { name: 'Nữ', value: statistics.byGender.female || 0, color: '#f9a8d4' },
   ];
 
   // Chuẩn bị dữ liệu cho biểu đồ độ tuổi
