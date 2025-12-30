@@ -33,13 +33,15 @@
   --primary-dark: #009e88;
   --primary-light: #33e6cf;
   --primary-foreground: #ffffff;
-  /* Added brand accent: cyan (paired with primary) */
+  /* Added brand accents: magenta + cyan, mixed with current primary */
+  --brand-magenta: #d8318d;
+  --brand-magenta-rgb: 216,49,141;
   --brand-cyan: #31b9d8;
   --brand-cyan-rgb: 49,185,216;
 
   /* Active/button gradient: 2 colors only (primary -> cyan) */
   --primary-gradient: linear-gradient(90deg, var(--primary) 0%, var(--brand-cyan) 100%);
-  --brand-gradient: linear-gradient(120deg, var(--primary) 0%, var(--brand-cyan) 100%);
+  --brand-gradient: linear-gradient(120deg, var(--primary) 0%, var(--brand-cyan) 48%, var(--brand-magenta) 100%);
   --primary-shadow: 0 10px 26px rgba(var(--primary-rgb),0.06);
 
   /* Glassmorphism tokens */
@@ -108,19 +110,18 @@ body {
   background-color: var(--background);
 }
 
-/* Global aurora background: mixes primary + cyan subtly */
+/* Global aurora background: mixes primary + cyan + magenta subtly */
 body {
   position: relative;
   isolation: isolate;
   background-color: var(--background);
   background:
-    radial-gradient(980px 640px at 12% 10%, rgba(var(--brand-cyan-rgb), 0.24) 0%, rgba(255,255,255,0) 64%),
-    radial-gradient(980px 640px at 88% 12%, rgba(var(--primary-rgb), 0.22) 0%, rgba(255,255,255,0) 66%),
-    radial-gradient(920px 620px at 52% 40%, rgba(var(--brand-cyan-rgb), 0.12) 0%, rgba(255,255,255,0) 64%),
-    radial-gradient(980px 720px at 50% 118%, rgba(var(--primary-rgb), 0.12) 0%, rgba(255,255,255,0) 70%),
-    radial-gradient(1200px 760px at 50% -10%, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0) 60%),
-    radial-gradient(1200px 760px at 50% 120%, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0) 64%),
-    linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,1) 42%);
+    radial-gradient(980px 560px at 10% 0%, rgba(var(--brand-magenta-rgb), 0.22) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(980px 560px at 92% 8%, rgba(var(--brand-cyan-rgb), 0.10) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(980px 560px at 88% 112%, rgba(var(--brand-magenta-rgb), 0.16) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(980px 560px at 55% 110%, rgba(var(--primary-rgb), 0.10) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(1100px 680px at 50% 35%, rgba(var(--primary-rgb), 0.04) 0%, rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,1) 58%);
   background-attachment: fixed;
 }
 
@@ -135,36 +136,49 @@ body > * {
 body::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -60%;
   z-index: 0;
   pointer-events: none;
   background:
-    /* subtle grid (like map/planning) */
-    linear-gradient(to right, rgba(var(--brand-cyan-rgb), 0.06) 1px, rgba(255,255,255,0) 1px),
-    linear-gradient(to bottom, rgba(var(--brand-cyan-rgb), 0.06) 1px, rgba(255,255,255,0) 1px),
-    /* dotted points */
-    radial-gradient(circle at 1px 1px, rgba(var(--primary-rgb), 0.08) 1px, rgba(255,255,255,0) 1.6px);
-  background-size: 84px 84px, 84px 84px, 18px 18px;
-  background-position: 0 0, 0 0, 8px 10px;
-  opacity: 0.16;
-  filter: none;
+    conic-gradient(
+      from 220deg at 50% 50%,
+      rgba(var(--primary-rgb), 1) 0%,
+      rgba(var(--brand-cyan-rgb), 1) 22%,
+      rgba(var(--brand-magenta-rgb), 1) 55%,
+      rgba(var(--brand-magenta-rgb), 1) 78%,
+      rgba(var(--primary-rgb), 1) 100%
+    ),
+    radial-gradient(closest-side at 18% 18%, rgba(var(--brand-cyan-rgb), 0.55) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(closest-side at 82% 24%, rgba(var(--brand-magenta-rgb), 0.98) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(closest-side at 32% 86%, rgba(var(--brand-magenta-rgb), 0.55) 0%, rgba(255,255,255,0) 66%),
+    radial-gradient(closest-side at 55% 86%, rgba(var(--primary-rgb), 0.55) 0%, rgba(255,255,255,0) 64%);
+  background-size: 260% 260%;
+  background-position: 35% 50%;
+  opacity: 0.090;
+  filter: blur(110px) saturate(1.16);
   transform: translate3d(0, 0, 0);
 }
 
 body::after {
   content: "";
   position: fixed;
-  inset: -48%;
+  inset: -65%;
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(closest-side at 18% 18%, rgba(var(--brand-cyan-rgb), 0.58) 0%, rgba(255,255,255,0) 62%),
-    radial-gradient(closest-side at 84% 20%, rgba(var(--primary-rgb), 0.54) 0%, rgba(255,255,255,0) 64%),
-    radial-gradient(closest-side at 40% 88%, rgba(var(--brand-cyan-rgb), 0.34) 0%, rgba(255,255,255,0) 66%);
-  background-size: 260% 260%;
-  background-position: 50% 40%;
-  opacity: 0.040;
-  filter: blur(140px) saturate(1.18);
+    conic-gradient(
+      from 120deg at 60% 42%,
+      rgba(var(--brand-magenta-rgb), 1) 0%,
+      rgba(var(--primary-rgb), 1) 40%,
+      rgba(var(--brand-cyan-rgb), 0.90) 62%,
+      rgba(var(--brand-magenta-rgb), 1) 100%
+    ),
+    radial-gradient(closest-side at 70% 20%, rgba(var(--primary-rgb), 0.40) 0%, rgba(255,255,255,0) 64%),
+    radial-gradient(closest-side at 28% 78%, rgba(var(--brand-magenta-rgb), 0.78) 0%, rgba(255,255,255,0) 66%);
+  background-size: 320% 320%;
+  background-position: 65% 45%;
+  opacity: 0.070;
+  filter: blur(145px) saturate(1.14);
   transform: translate3d(0, 0, 0);
 }
 
@@ -310,7 +324,7 @@ body::after {
 }
 
 .header-gradient {
-  background: #ffffff;
+  background: linear-gradient(180deg, rgba(var(--primary-rgb),0.015), rgba(255,255,255,1));
 }
 
 /* Glass header (safe for non-scroll areas like page headers) */
@@ -322,7 +336,44 @@ body::after {
   -webkit-backdrop-filter: blur(34px) saturate(1.22) contrast(1.04);
 }
 
-/* Page headers: keep clean like original (no decorative overlays) */
+/* Page headers: add depth with subtle aurora glows + sheen (uses existing theme variables only) */
+.page-header {
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 85% at 10% 15%, rgba(var(--brand-magenta-rgb), 0.14) 0%, rgba(255,255,255,0) 60%),
+    radial-gradient(120% 85% at 90% 0%, rgba(var(--brand-cyan-rgb), 0.14) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(100% 90% at 55% 110%, rgba(var(--primary-rgb), 0.10) 0%, rgba(255,255,255,0) 62%);
+  filter: blur(20px);
+  opacity: 0.95;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0) 38%),
+    linear-gradient(180deg, rgba(255,255,255,0.66) 0%, rgba(255,255,255,0) 55%);
+  opacity: 0.65;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.page-header > * {
+  position: relative;
+  z-index: 2;
+}
 
 /* Sidebar header Home link: no hover lift, only a soft highlight */
 .header-home-link {
@@ -342,16 +393,31 @@ body::after {
 /* Subtle artistic background for the sidebar (uses existing theme variables only) */
 .sidebar-art [data-slot="sidebar-inner"] {
   background:
-    var(--glass-surface),
-    var(--glass-bg),
-    radial-gradient(140% 80% at 10% 0%, rgba(var(--brand-cyan-rgb), 0.10) 0%, rgba(255, 255, 255, 0) 55%),
-    radial-gradient(120% 70% at 20% 0%, rgba(var(--primary-rgb), 0.08) 0%, rgba(255, 255, 255, 0) 55%),
-    linear-gradient(180deg, rgba(var(--primary-rgb), 0.04) 0%, rgba(255, 255, 255, 0) 55%),
+    radial-gradient(
+      140% 80% at 10% 0%,
+      rgba(var(--brand-cyan-rgb), 0.06) 0%,
+      rgba(255, 255, 255, 0) 55%
+    ),
+    radial-gradient(
+      140% 80% at 90% 10%,
+      rgba(var(--brand-magenta-rgb), 0.05) 0%,
+      rgba(255, 255, 255, 0) 58%
+    ),
+    radial-gradient(
+      120% 70% at 20% 0%,
+      rgba(var(--primary-rgb), 0.06) 0%,
+      rgba(255, 255, 255, 0) 55%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(var(--primary-rgb), 0.04) 0%,
+      rgba(255, 255, 255, 0) 55%
+    ),
     var(--sidebar);
-  backdrop-filter: blur(44px) saturate(1.28) contrast(1.03);
-  -webkit-backdrop-filter: blur(44px) saturate(1.28) contrast(1.03);
-  border-color: var(--glass-border) !important;
-  box-shadow: var(--glass-shadow);
+}
+
+.sidebar-art [data-slot="sidebar-inner"] {
+  border-color: rgba(var(--primary-rgb), 0.06);
 }
 
 /* Premium sidebar nav button styling (visible hover + strong active) */
@@ -507,20 +573,6 @@ body::after {
 
 .glass-panel [data-slot="table-container"]::after {
   display: none;
-}
-
-/* Unified table row hover: subtle primary (green) highlight */
-.table-row-hover {
-  transition: background-color 150ms ease;
-}
-
-.table-row-hover:hover {
-  background: linear-gradient(
-    90deg,
-    rgba(var(--primary-rgb), 0.09) 0%,
-    rgba(var(--primary-rgb), 0.05) 45%,
-    rgba(var(--primary-rgb), 0.02) 100%
-  );
 }
 
 /* Login hero: richer brand gradient */
