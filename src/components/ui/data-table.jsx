@@ -12,6 +12,7 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Search, X } from "lucide-react";
 
 import {
   Table,
@@ -29,7 +30,7 @@ export function DataTable({
   searchPlaceholder = "Tìm kiếm...",
   enableFilters = false,
   filters = [],
-  rowClassName = "",
+  rowClassName = "table-row-hover",
   enablePagination = false,
   pageSize = 10,
 }) {
@@ -84,16 +85,22 @@ export function DataTable({
 
   return (
     <div className="glass-panel rounded-xl border p-4 space-y-3">
-      {enableSearch ? (
-        <Input
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder={searchPlaceholder}
-        />
-      ) : null}
+      {enableSearch || (enableFilters && filters?.length) ? (
+        <div className="flex flex-col gap-3">
+          {enableSearch ? (
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={globalFilter}
+                onChange={(e) => setGlobalFilter(e.target.value)}
+                placeholder={searchPlaceholder}
+                className="pl-9"
+              />
+            </div>
+          ) : null}
 
-      {enableFilters && filters?.length ? (
-        <div className="flex flex-wrap items-end gap-3">
+          {enableFilters && filters?.length ? (
+            <div className="flex flex-wrap items-end gap-3">
           {filters.map((f) => {
             const col = table.getColumn(f.id);
             if (!col) return null;
@@ -108,12 +115,12 @@ export function DataTable({
                     .sort((a, b) => a.localeCompare(b, "vi"));
 
               return (
-                <div key={f.id} className="space-y-1">
-                  <label className="text-sm font-medium">{f.label}</label>
+                <div key={f.id} className="space-y-1 min-w-[220px]">
+                  <label className="text-xs font-medium text-muted-foreground">{f.label}</label>
                   <select
                     value={String(value)}
                     onChange={(e) => col.setFilterValue(e.target.value)}
-                    className="border-input bg-background text-foreground h-9 rounded-md border px-3 text-sm shadow-xs">
+                    className="border-input bg-background/60 text-foreground h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/20 focus-visible:ring-[2px]">
                     <option value="">Tất cả</option>
                     {options.map((opt) => (
                       <option key={opt} value={opt}>
@@ -127,8 +134,8 @@ export function DataTable({
 
             // default: text filter
             return (
-              <div key={f.id} className="space-y-1">
-                <label className="text-sm font-medium">{f.label}</label>
+              <div key={f.id} className="space-y-1 min-w-[220px]">
+                <label className="text-xs font-medium text-muted-foreground">{f.label}</label>
                 <Input
                   value={String(value)}
                   onChange={(e) => col.setFilterValue(e.target.value)}
@@ -138,9 +145,12 @@ export function DataTable({
             );
           })}
 
-          <Button type="button" variant="outline" size="sm" onClick={clearFilters}>
-            Xóa lọc
-          </Button>
+              <Button type="button" variant="outline" size="sm" onClick={clearFilters} className="accent-outline action-btn">
+                <X className="size-4" />
+                Xóa lọc
+              </Button>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -153,7 +163,7 @@ export function DataTable({
                   {header.isPlaceholder ? null : header.column.getCanSort() ? (
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2"
+                      className="inline-flex items-center gap-2 text-foreground hover:text-foreground"
                       onClick={header.column.getToggleSortingHandler()}>
                       {flexRender(
                         header.column.columnDef.header,
