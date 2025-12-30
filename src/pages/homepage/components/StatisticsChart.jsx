@@ -8,19 +8,34 @@ export default function StatisticsChart() {
   const [statistics, setStatistics] = useState(null);
   const [attendanceStats, setAttendanceStats] = useState(null);
   const [topHouseholds, setTopHouseholds] = useState(null);
+  const [frequencyStats, setFrequencyStats] = useState(null);
+  const [culturalFamilies, setCulturalFamilies] = useState(null);
   const [loading, setLoading] = useState(true);
   const [attendanceLoading, setAttendanceLoading] = useState(true);
   const [topHouseholdsLoading, setTopHouseholdsLoading] = useState(true);
+  const [frequencyLoading, setFrequencyLoading] = useState(true);
+  const [culturalFamiliesLoading, setCulturalFamiliesLoading] = useState(true);
   const [error, setError] = useState(null);
   const [attendanceError, setAttendanceError] = useState(null);
   const [topHouseholdsError, setTopHouseholdsError] = useState(null);
+  const [frequencyError, setFrequencyError] = useState(null);
+  const [culturalFamiliesError, setCulturalFamiliesError] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(''); // 'YYYY-MM'
+  const [selectedFrequencyMonth, setSelectedFrequencyMonth] = useState(''); // 'YYYY-MM'
 
   useEffect(() => {
     fetchStatistics();
     fetchAttendanceStatistics();
     fetchTopHouseholds();
+    fetchCulturalFamilies();
   }, []);
+
+  // Fetch frequency stats khi selectedFrequencyMonth thay đổi
+  useEffect(() => {
+    if (selectedFrequencyMonth) {
+      fetchFrequencyStats(selectedFrequencyMonth);
+    }
+  }, [selectedFrequencyMonth]);
 
   // Set tháng gần nhất khi có dữ liệu (chỉ set một lần)
   useEffect(() => {
@@ -36,7 +51,9 @@ export default function StatisticsChart() {
       });
       const availableMonths = Array.from(monthsSet).sort().reverse();
       if (availableMonths.length > 0) {
-        setSelectedMonth(availableMonths[0]); // Set tháng gần nhất
+        const latestMonth = availableMonths[0];
+        setSelectedMonth(latestMonth); // Set tháng gần nhất
+        setSelectedFrequencyMonth(latestMonth); // Set tháng gần nhất cho frequency chart
       }
     }
   }, [attendanceStats]);
@@ -113,6 +130,60 @@ export default function StatisticsChart() {
       console.error('Top households error:', err);
     } finally {
       setTopHouseholdsLoading(false);
+    }
+  };
+
+  const fetchFrequencyStats = async (monthKey) => {
+    if (!monthKey) return;
+    
+    setFrequencyLoading(true);
+    setFrequencyError(null);
+    try {
+      const [year, month] = monthKey.split('-');
+      const res = await fetch(`/api/attendance/frequency-by-month?year=${year}&month=${month}`);
+      const json = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(json.error || `HTTP ${res.status}: Lỗi tải dữ liệu tần suất tham gia`);
+      }
+      
+      if (json.success) {
+        setFrequencyStats(json.data);
+      } else {
+        throw new Error(json.error || 'Lỗi không xác định');
+      }
+    } catch (err) {
+      const errorMessage = err.message || 'Có lỗi xảy ra khi tải dữ liệu tần suất tham gia';
+      setFrequencyError(errorMessage);
+      console.error('Frequency stats error:', err);
+    } finally {
+      setFrequencyLoading(false);
+    }
+  };
+
+  const fetchCulturalFamilies = async () => {
+    setCulturalFamiliesLoading(true);
+    setCulturalFamiliesError(null);
+    try {
+      const currentYear = new Date().getFullYear();
+      const res = await fetch(`/api/attendance/cultural-families?year=${currentYear}`);
+      const json = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(json.error || `HTTP ${res.status}: Lỗi tải dữ liệu gia đình văn hóa`);
+      }
+      
+      if (json.success) {
+        setCulturalFamilies(json.data);
+      } else {
+        throw new Error(json.error || 'Lỗi không xác định');
+      }
+    } catch (err) {
+      const errorMessage = err.message || 'Có lỗi xảy ra khi tải dữ liệu gia đình văn hóa';
+      setCulturalFamiliesError(errorMessage);
+      console.error('Cultural families error:', err);
+    } finally {
+      setCulturalFamiliesLoading(false);
     }
   };
 
@@ -204,6 +275,14 @@ export default function StatisticsChart() {
   };
   
   const availableMonths = getAvailableMonths();
+
+  // Chuẩn bị dữ liệu cho biểu đồ hình quạt tần suất tham gia
+  const frequencyChartData = frequencyStats ? [
+    { name: '>= 90%', value: frequencyStats.categories['>=90%'] || 0, color: '#10b981' },
+    { name: '70-90%', value: frequencyStats.categories['70-90%'] || 0, color: '#06b6d4' },
+    { name: '50-70%', value: frequencyStats.categories['50-70%'] || 0, color: '#fbbf24' },
+    { name: '< 50%', value: frequencyStats.categories['<50%'] || 0, color: '#ef4444' }
+  ].filter(item => item.value > 0) : [];
   
   // Filter dữ liệu theo tháng đã chọn
   const filterAttendanceData = () => {
@@ -224,15 +303,22 @@ export default function StatisticsChart() {
   
   const filteredData = filterAttendanceData();
   
-  // Chuẩn bị dữ liệu - chỉ hiển thị ngày trên trục X, tên cuộc họp trong tooltip
+  // Chuẩn bị dữ liệu - thêm thời gian vào label để phân biệt các cuộc họp trong cùng ngày
   const attendanceData = filteredData.map((meeting, index) => {
-    // Chỉ dùng ngày làm label, không có tên cuộc họp để tránh bị đè
-    const label = meeting.date;
+    let label = meeting.date;
+    
+    // Nếu có thời gian, thêm giờ:phút vào label để phân biệt các cuộc họp trong cùng ngày
+    if (meeting.time) {
+      const meetingDateTime = new Date(meeting.time);
+      const hours = String(meetingDateTime.getHours()).padStart(2, '0');
+      const minutes = String(meetingDateTime.getMinutes()).padStart(2, '0');
+      label = `${meeting.date} ${hours}:${minutes}`;
+    }
     
     return {
       ...meeting,
-      label: label, // Label cho trục X (chỉ ngày)
-      fullTopic: meeting.topic || `Cuộc họp ${index + 1}` // Tên đầy đủ cho tooltip
+      label: label, // Label cho trục X (ngày + giờ)
+      fullTopic: meeting.topic || `Cuộc họp ${index + 1}` 
     };
   });
 
@@ -457,68 +543,181 @@ export default function StatisticsChart() {
                     />
                   </BarChart>
                 </ResponsiveContainer>
-                
-                {/* Top 3 hộ gia đình đi họp nhiều nhất */}
-                {topHouseholdsLoading ? (
-                  <div className="mt-6 flex items-center justify-center py-4">
-                    <p className="text-gray-500 text-sm">Đang tải...</p>
-                  </div>
-                ) : topHouseholdsError ? (
-                  <div className="mt-6 flex items-center justify-center py-4">
-                    <p className="text-red-500 text-sm">Lỗi: {topHouseholdsError}</p>
-                  </div>
-                ) : topHouseholds && topHouseholds.length > 0 ? (
-                  <div className="mt-8 pt-6 border-t border-teal-200">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-4">Top 3 hộ gia đình tham gia nhiều nhất</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {topHouseholds.map((household) => (
-                        <div 
-                          key={household.householdId} 
-                          className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-lg border border-amber-200 hover:border-amber-400 hover:shadow-md transition-all"
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
-                                household.rank === 1 ? 'bg-yellow-500' :
-                                household.rank === 2 ? 'bg-gray-400' :
-                                'bg-amber-600'
-                              }`}>
-                                {household.rank}
-                              </div>
-                              <span className="text-xs font-medium text-slate-600">Hạng {household.rank}</span>
-                            </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Biểu đồ hình quạt - Tần suất tham gia họp */}
+      <div className="mt-8">
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 rounded-xl">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl text-slate-800">Tần suất tham gia họp của hộ gia đình</CardTitle>
+              <div className="flex items-center gap-2">
+                <label htmlFor="frequencyMonthFilter" className="text-sm text-slate-600 font-medium">
+                  Chọn tháng:
+                </label>
+                <select
+                  id="frequencyMonthFilter"
+                  value={selectedFrequencyMonth}
+                  onChange={(e) => setSelectedFrequencyMonth(e.target.value)}
+                  className="px-3 py-1.5 border border-slate-300 rounded-md text-sm text-slate-700 bg-white hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                  disabled={availableMonths.length === 0}
+                >
+                  {availableMonths.length === 0 ? (
+                    <option value="">Đang tải...</option>
+                  ) : (
+                    availableMonths.map(monthKey => {
+                      const [year, month] = monthKey.split('-');
+                      const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 
+                                        'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+                      return (
+                        <option key={monthKey} value={monthKey}>
+                          {monthNames[parseInt(month) - 1]} {year}
+                        </option>
+                      );
+                    })
+                  )}
+                </select>
+              </div>
+            </div>
+            {frequencyStats && (
+              <p className="text-sm text-slate-600 mt-2">
+                Tổng số hộ: <span className="font-semibold text-teal-600">{frequencyStats.totalHouseholds || 0}</span>
+                {' • '}
+                Tổng số cuộc họp: <span className="font-semibold text-teal-600">{frequencyStats.totalMeetings || 0}</span>
+              </p>
+            )}
+          </CardHeader>
+          <CardContent>
+            {frequencyError ? (
+              <div className="flex flex-col items-center justify-center h-64">
+                <p className="text-red-500 mb-4">Lỗi: {frequencyError}</p>
+                <button
+                  onClick={() => selectedFrequencyMonth && fetchFrequencyStats(selectedFrequencyMonth)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Thử lại
+                </button>
+              </div>
+            ) : frequencyLoading ? (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-gray-500">Đang tải...</p>
+              </div>
+            ) : !selectedFrequencyMonth ? (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-gray-500">Vui lòng chọn tháng</p>
+              </div>
+            ) : frequencyChartData.length === 0 ? (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-gray-500">Không có dữ liệu cho tháng đã chọn</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={frequencyChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                        animationBegin={0}
+                        animationDuration={600}
+                      >
+                        {frequencyChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `${value} hộ`} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-3">
+                  {frequencyChartData.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all">
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-full" style={{backgroundColor: item.color}}></div>
+                        <span className="text-slate-700 font-medium">{item.name}</span>
+                      </div>
+                      <span className="font-bold text-slate-800 text-lg">{item.value} hộ</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Danh sách gia đình văn hóa */}
+            <div className="mt-8 pt-6 border-t border-slate-200">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Gia đình văn hóa (Tỷ lệ tham gia ≥ 90% trong năm)</h3>
+              {culturalFamiliesError ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <p className="text-red-500 mb-4">Lỗi: {culturalFamiliesError}</p>
+                  <button
+                    onClick={fetchCulturalFamilies}
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    Thử lại
+                  </button>
+                </div>
+              ) : culturalFamiliesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <p className="text-gray-500">Đang tải...</p>
+                </div>
+              ) : !culturalFamilies || culturalFamilies.length === 0 ? (
+                <div className="flex items-center justify-center py-8">
+                  <p className="text-gray-500">Chưa có hộ gia đình nào đạt tiêu chí gia đình văn hóa</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Tổng số: <span className="font-semibold text-teal-600">{culturalFamilies.length}</span> hộ gia đình
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                    {culturalFamilies.map((household, index) => (
+                      <div 
+                        key={household.householdId} 
+                        className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200 hover:border-green-400 hover:shadow-md transition-all"
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-sm">
+                            {index + 1}
                           </div>
-                          <div className="space-y-2">
-                            <div>
-                              <p className="text-xs text-slate-600 mb-1">Mã hộ:</p>
-                              <p className="text-sm font-semibold text-slate-800">{household.householdCode}</p>
+                          <span className="text-xs font-medium text-green-700">Gia đình văn hóa</span>
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-xs text-slate-600 mb-1">Mã hộ:</p>
+                            <p className="text-sm font-semibold text-slate-800">{household.householdCode}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-600 mb-1">Chủ hộ:</p>
+                            <p className="text-sm font-medium text-slate-800">{household.headName}</p>
+                          </div>
+                          <div className="pt-2 border-t border-green-200">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-slate-600">Số lần tham gia:</span>
+                              <span className="font-bold text-green-600">{household.attendanceCount}/{household.totalMeetings}</span>
                             </div>
-                            <div>
-                              <p className="text-xs text-slate-600 mb-1">Chủ hộ:</p>
-                              <p className="text-sm font-medium text-slate-800">{household.headName}</p>
-                            </div>
-                            <div className="pt-2 border-t border-amber-200">
-                              <div className="flex justify-between items-center">
-                                <span className="text-xs text-slate-600">Số lần tham gia:</span>
-                                <span className="font-bold text-amber-600">{household.attendanceCount}</span>
-                              </div>
-                              <div className="flex justify-between items-center mt-1">
-                                <span className="text-xs text-slate-600">Tỷ lệ:</span>
-                                <span className="font-bold text-amber-600">{household.attendanceRate.toFixed(1)}%</span>
-                              </div>
+                            <div className="flex justify-between items-center mt-1">
+                              <span className="text-xs text-slate-600">Tỷ lệ:</span>
+                              <span className="font-bold text-green-600">{household.attendanceRate.toFixed(1)}%</span>
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                ) : (
-                  <div className="mt-6 flex items-center justify-center py-4">
-                    <p className="text-gray-500 text-sm">Chưa có dữ liệu</p>
-                  </div>
-                )}
-              </>
-            )}
+                </>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
