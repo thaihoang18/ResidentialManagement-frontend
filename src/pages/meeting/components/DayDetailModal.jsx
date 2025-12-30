@@ -14,6 +14,16 @@ export default function DayDetailModal({
   onPrintInvite,
 }) {
   if (!day) return null;
+
+  function normalizeHexColor(input, fallback = "#32f1cd") {
+    if (input === undefined || input === null) return fallback;
+    const raw = String(input).trim();
+    if (!raw) return fallback;
+    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw)) return raw;
+    if (/^([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw)) return `#${raw}`;
+    return fallback;
+  }
+
   // Helper to get local date string YYYY-MM-DD
   function getLocalDateString(day) {
     return `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
@@ -57,7 +67,9 @@ export default function DayDetailModal({
               <div
                 key={ev.id}
                 className="glass-panel border rounded-md p-4 event-accent"
-                style={{ borderLeftWidth: 6, borderLeftColor: ev?.color || "#32f1cd" }}
+                style={{
+                  "--event-accent": normalizeHexColor(ev?.color, "#32f1cd"),
+                }}
               >
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
                   <div className="min-w-0">
