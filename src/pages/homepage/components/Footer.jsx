@@ -1,10 +1,8 @@
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white py-8 shadow-2xl">
-      <div className="container mx-auto px-4">
-        <p className="text-center text-slate-300 text-sm">&copy; 2025 Hệ Thống Quản Lý Cư Dân. Tất cả quyền được bảo lưu.</p>
-      </div>
+    <footer className="mx-6 mb-6 lg:mb-4 glass-panel rounded-2xl border border-border/60 shadow-lg px-4 py-4 lg:py-3">
+      <p className="text-center text-muted-foreground text-sm">&copy; 2025 Hệ Thống Quản Lý Cư Dân. Tất cả quyền được bảo lưu.</p>
     </footer>
   )
 }

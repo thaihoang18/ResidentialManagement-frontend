@@ -575,6 +575,41 @@ body::after {
   display: none;
 }
 
+<<<<<<< HEAD
+/* Unified table row hover: subtle primary (green) highlight */
+.table-row-hover {
+  transition: background-color 150ms ease;
+}
+
+.table-row-hover:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--primary-rgb), 0.09) 0%,
+    rgba(var(--primary-rgb), 0.05) 45%,
+    rgba(var(--primary-rgb), 0.02) 100%
+  );
+}
+
+/* Calendar (date picker) day hover: match table row hover tone */
+[data-slot="calendar"] .calendar-day-hover:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--primary-rgb), 0.09) 0%,
+    rgba(var(--primary-rgb), 0.05) 45%,
+    rgba(var(--primary-rgb), 0.02) 100%
+  ) !important;
+}
+
+/* Do not override selected/range days on hover */
+[data-slot="calendar"] .calendar-day-hover[data-selected-single="true"]:hover,
+[data-slot="calendar"] .calendar-day-hover[data-range-start="true"]:hover,
+[data-slot="calendar"] .calendar-day-hover[data-range-end="true"]:hover {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+=======
+>>>>>>> 30c9c79cab412a7be7b78e956bc9f3e6acce3654
 /* Login hero: richer brand gradient */
 .login-hero {
   background: linear-gradient(135deg, rgba(var(--primary-rgb),0.94) 0%, rgba(var(--brand-cyan-rgb),0.90) 100%);

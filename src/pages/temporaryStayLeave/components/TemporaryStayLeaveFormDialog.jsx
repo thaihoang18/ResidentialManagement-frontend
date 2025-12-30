@@ -8,12 +8,17 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const toDateInputValue = (value) => {
   if (!value) return "";
   const s = String(value);
   return s.length >= 10 ? s.substring(0, 10) : "";
 };
+
+  const handleDateChange = (name) => (nextValue) => {
+    setForm((prev) => ({ ...prev, [name]: nextValue }));
+  };
 
 export default function TemporaryStayLeaveFormDialog({
   open,
@@ -352,19 +357,19 @@ export default function TemporaryStayLeaveFormDialog({
           )}
 
           <label>Từ ngày:</label>
-          <Input
+          <DatePicker
             name="start_date"
-            type="date"
+            placeholder="Chọn ngày"
             value={toDateInputValue(form.start_date)}
-            onChange={handleChange}
+            onChange={handleDateChange("start_date")}
           />
 
           <label>Đến ngày (nếu có):</label>
-          <Input
+          <DatePicker
             name="end_date"
-            type="date"
+            placeholder="Chọn ngày"
             value={toDateInputValue(form.end_date)}
-            onChange={handleChange}
+            onChange={handleDateChange("end_date")}
           />
 
           <label>Lý do:</label>
