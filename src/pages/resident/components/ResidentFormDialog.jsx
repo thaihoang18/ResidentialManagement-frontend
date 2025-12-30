@@ -29,42 +29,66 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
 
   const pad = (n) => String(n).padStart(2, "0");
   const formatDateForDisplay = (value) => {
-    if (!value) return "";
+    if (!value) return "-";
     const d = new Date(value);
-    if (isNaN(d)) return "";
+    if (isNaN(d)) return "-";
+    const pad = (n) => String(n).padStart(2, "0");
     return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
   };
 
   const parseDisplayToISO = (str) => {
     if (!str) return "";
+    const s = String(str).trim();
     const dmY = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/;
     const ymd = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/;
     let m;
-    if ((m = str.match(dmY))) {
+    if ((m = s.match(dmY))) {
       const d = pad(m[1]);
       const mo = pad(m[2]);
       const y = m[3];
       return `${y}-${mo}-${d}`;
     }
-    if ((m = str.match(ymd))) {
+    if ((m = s.match(ymd))) {
       return `${m[1]}-${m[2]}-${m[3]}`;
     }
-    const parsed = new Date(str);
+    const parsed = new Date(s);
     if (!isNaN(parsed)) {
       return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`;
     }
     return "";
   };
 
-  useEffect(() => {
-    if (initialData) setForm({ ...initialData });
-    else setForm((s) => ({ ...s, household_id: s.household_id || "" }));
+useEffect(() => {
+  if (!open) return;
+
+  if (initialData) {
+    setForm({ ...initialData });
     setDisplayDates({
-      date_of_birth: initialData ? formatDateForDisplay(initialData.date_of_birth) : "",
-      id_issue_date: initialData ? formatDateForDisplay(initialData.id_issue_date) : "",
-      registration_date: initialData ? formatDateForDisplay(initialData.registration_date) : "",
+      date_of_birth: formatDateForDisplay(initialData.date_of_birth),
+      id_issue_date: formatDateForDisplay(initialData.id_issue_date),
+      registration_date: formatDateForDisplay(initialData.registration_date),
     });
-  }, [initialData]);
+  } else {
+    setForm({
+      household_id: "",
+      full_name: "",
+      date_of_birth: "",
+      place_of_birth: "",
+      native_place: "",
+      ethnicity: "",
+      occupation: "",
+      id_number: "",
+      id_issue_date: "",
+      id_issue_place: "",
+      registration_date: "",
+      previous_address: "",
+      relation_to_head: "",
+      gender: "",
+      status: "",
+    });
+    setDisplayDates({ date_of_birth: "", id_issue_date: "", registration_date: "" });
+  }
+}, [open]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -72,11 +96,11 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
     setDisplayDates((s) => ({ ...s, [name]: value }));
   };
 
-  const handleDateBlur = (name, value) => {
-    const iso = parseDisplayToISO(value);
-    setForm((s) => ({ ...s, [name]: iso }));
-    setDisplayDates((s) => ({ ...s, [name]: formatDateForDisplay(iso) }));
-  };
+const handleDateBlur = (name, value) => {
+  const iso = parseDisplayToISO(value);
+  setForm((prev) => ({ ...prev, [name]: iso }));
+  setDisplayDates((prev) => ({ ...prev, [name]: formatDateForDisplay(iso) }));
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -94,7 +94,6 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
         { id: "full_name", label: "Họ và tên", type: "text", placeholder: "VD: Nguyễn Văn A" },
         { id: "place_of_birth", label: "Nơi sinh", type: "text", placeholder: "VD: Hà Nội" },
         { id: "gender", label: "Giới tính", type: "select"},
-        { id: "ethnicity", label: "Dân tộc", type: "select"},
         { id: "occupation", label: "Nghề nghiệp", type: "select"},
         { id: "relation_to_head", label: "Quan hệ", type: "select"},
       ]}
