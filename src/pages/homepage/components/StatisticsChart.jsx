@@ -1,8 +1,46 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Crown } from 'lucide-react';
 
-const COLORS = ['#31b9d8', '#f9a8d4', '#64748b', '#0f766e', '#06b6d4', '#fbbf24'];
+const mixWithWhite = (color, pct) => `color-mix(in srgb, ${color} ${pct}%, white)`;
+const mixColors = (a, aPct, b) => `color-mix(in srgb, ${a} ${aPct}%, ${b})`;
+const brighten = (color) => mixWithWhite(color, 94);
+const deepen = (color) => mixColors(color, 88, 'var(--foreground)');
+
+// General palette (used as fallback only). Each chart below has its own palette.
+const COLORS = [
+  'var(--primary)',
+  'var(--brand-cyan)',
+  'var(--chart-1)',
+  'var(--chart-3)',
+  mixWithWhite('var(--destructive)', 84),
+  mixColors('var(--primary)', 55, 'var(--brand-cyan)'),
+  mixColors('var(--brand-cyan)', 55, 'var(--chart-1)'),
+  mixColors('var(--primary)', 55, 'var(--chart-3)'),
+];
+
+const RADIAN = Math.PI / 180;
+
+function renderPiePercentLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }) {
+  if (percent == null) return null;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.62;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="var(--foreground)"
+      textAnchor="middle"
+      dominantBaseline="central"
+      style={{ fontSize: 11, fontWeight: 600, pointerEvents: 'none' }}
+    >
+      {`${Math.round(percent * 100)}%`}
+    </text>
+  );
+}
 
 export default function StatisticsChart() {
   const [statistics, setStatistics] = useState(null);
@@ -10,24 +48,111 @@ export default function StatisticsChart() {
   const [topHouseholds, setTopHouseholds] = useState(null);
   const [frequencyStats, setFrequencyStats] = useState(null);
   const [culturalFamilies, setCulturalFamilies] = useState(null);
+  const [temporaryStayLeaveStats, setTemporaryStayLeaveStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [attendanceLoading, setAttendanceLoading] = useState(true);
   const [topHouseholdsLoading, setTopHouseholdsLoading] = useState(true);
   const [frequencyLoading, setFrequencyLoading] = useState(true);
   const [culturalFamiliesLoading, setCulturalFamiliesLoading] = useState(true);
+  const [temporaryStayLeaveLoading, setTemporaryStayLeaveLoading] = useState(true);
   const [error, setError] = useState(null);
   const [attendanceError, setAttendanceError] = useState(null);
   const [topHouseholdsError, setTopHouseholdsError] = useState(null);
   const [frequencyError, setFrequencyError] = useState(null);
   const [culturalFamiliesError, setCulturalFamiliesError] = useState(null);
+  const [temporaryStayLeaveError, setTemporaryStayLeaveError] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(''); // 'YYYY-MM'
   const [selectedFrequencyMonth, setSelectedFrequencyMonth] = useState(''); // 'YYYY-MM'
+  const [selectedYear, setSelectedYear] = useState(''); // 'YYYY' cho biểu đồ tạm trú/tạm vắng
+  const [availableYears, setAvailableYears] = useState([]); // Danh sách các năm có dữ liệu
+
+  // Derived data (must be declared before any early returns to respect Rules of Hooks)
+  const genderData = useMemo(() => {
+    const byGender = statistics?.byGender ?? {};
+    return [
+      // Nam/Nữ: xanh + hồng rõ ràng (hồng từ destructive + trắng, nhưng đậm hơn để ra "hồng hẳn")
+      { name: 'Nam', value: byGender.male || 0, color: 'var(--brand-cyan)' },
+      { name: 'Nữ', value: byGender.female || 0, color: 'var(--gender-female)' },
+    ];
+  }, [statistics]);
+
+  const ageData = useMemo(() => {
+    const byAge = statistics?.byAge ?? {};
+    return Object.entries(byAge).map(([name, value]) => ({
+      name,
+      value: value || 0,
+    }));
+  }, [statistics]);
+
+  // Độ tuổi: mỗi cột một màu khác nhau (palette mới riêng, không dùng màu vừa input cho chart khác)
+  const ageBarColors = useMemo(
+    () => [
+      'var(--age-1)',
+      'var(--age-2)',
+      'var(--age-3)',
+      'var(--age-4)',
+      'var(--age-5)',
+      'var(--age-6)',
+      'var(--age-7)',
+      'var(--age-8)',
+    ],
+    []
+  );
+
+  const frequencyChartData = useMemo(
+    () => (frequencyStats
+      ? [
+          // Tần suất tham gia: dùng bộ màu khác (tránh giống nam/nữ và tránh giống "Tham gia họp")
+          { name: '>= 90%', value: frequencyStats.categories['>=90%'] || 0, color: 'var(--freq-90)', opacity: 0.96 },
+          { name: '70-90%', value: frequencyStats.categories['70-90%'] || 0, color: 'var(--freq-70-90)', opacity: 0.94 },
+          { name: '50-70%', value: frequencyStats.categories['50-70%'] || 0, color: 'var(--freq-50-70)', opacity: 0.94 },
+          { name: '< 50%', value: frequencyStats.categories['<50%'] || 0, color: 'var(--freq-lt-50)', opacity: 0.92 },
+        ].filter((item) => item.value > 0)
+      : []),
+    [frequencyStats]
+  );
+
+  // Tham gia họp: giữ xanh primary + đỏ nhạt (đẹp rồi) nên không đổi tone
+  const attendanceAbsentColor = useMemo(() => mixWithWhite('var(--destructive)', 84), []);
+
+  const getCulturalHighlight = (rankIndex) => {
+    // rankIndex: 0 = #1, 1 = #2
+    if (rankIndex === 0) {
+      // Gold (amber): use theme tokens
+      return {
+        border: '1px solid rgba(var(--gold-rgb),0.40)',
+        background: 'var(--gold-metal)',
+        boxShadow: '0 10px 22px rgba(var(--gold-rgb),0.18), inset 0 1px 0 rgba(255,255,255,0.55)',
+      };
+    }
+
+    if (rankIndex === 1) {
+      // Silver: use theme tokens
+      return {
+        border: '1px solid rgba(var(--silver-rgb),0.75)',
+        background: 'var(--silver-metal)',
+        boxShadow: '0 10px 22px rgba(var(--silver-rgb),0.28), inset 0 1px 0 rgba(255,255,255,0.70)',
+      };
+    }
+
+    if (rankIndex === 2) {
+      // Bronze: use theme tokens
+      return {
+        border: '1px solid rgba(var(--bronze-rgb),0.55)',
+        background: 'var(--bronze-metal)',
+        boxShadow: '0 10px 22px rgba(var(--bronze-rgb),0.20), inset 0 1px 0 rgba(255,255,255,0.55)',
+      };
+    }
+
+    return null;
+  };
 
   useEffect(() => {
     fetchStatistics();
     fetchAttendanceStatistics();
     fetchTopHouseholds();
     fetchCulturalFamilies();
+    fetchTemporaryStayLeaveStatistics();
   }, []);
 
   // Fetch frequency stats khi selectedFrequencyMonth thay đổi
@@ -36,6 +161,15 @@ export default function StatisticsChart() {
       fetchFrequencyStats(selectedFrequencyMonth);
     }
   }, [selectedFrequencyMonth]);
+
+  // Fetch lại khi năm thay đổi cho biểu đồ tạm trú/tạm vắng
+  useEffect(() => {
+    if (selectedYear !== '') {
+      fetchTemporaryStayLeaveStatistics(selectedYear);
+    } else {
+      fetchTemporaryStayLeaveStatistics();
+    }
+  }, [selectedYear]);
 
   // Set tháng gần nhất khi có dữ liệu (chỉ set một lần)
   useEffect(() => {
@@ -187,6 +321,43 @@ export default function StatisticsChart() {
     }
   };
 
+  const fetchTemporaryStayLeaveStatistics = async (year = null) => {
+    setTemporaryStayLeaveLoading(true);
+    setTemporaryStayLeaveError(null);
+    try {
+      const url = year 
+        ? `/api/temporary-stay-leave/statistics?year=${year}`
+        : '/api/temporary-stay-leave/statistics';
+      const res = await fetch(url);
+      const json = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(json.error || `HTTP ${res.status}: Lỗi tải dữ liệu biến động nhân khẩu`);
+      }
+      
+      if (json.success) {
+        setTemporaryStayLeaveStats(json.data);
+        // Chỉ cập nhật danh sách năm khi fetch không có year parameter (lần đầu hoặc "Tất cả")
+        if (!year && json.data && json.data.length > 0) {
+          const yearsSet = new Set();
+          json.data.forEach(stat => {
+            if (stat.year) yearsSet.add(stat.year);
+          });
+          const years = Array.from(yearsSet).sort((a, b) => b - a);
+          setAvailableYears(years);
+        }
+      } else {
+        throw new Error(json.error || 'Lỗi không xác định');
+      }
+    } catch (err) {
+      const errorMessage = err.message || 'Có lỗi xảy ra khi tải dữ liệu biến động nhân khẩu';
+      setTemporaryStayLeaveError(errorMessage);
+      console.error('TemporaryStayLeave statistics error:', err);
+    } finally {
+      setTemporaryStayLeaveLoading(false);
+    }
+  };
+
   if (loading || attendanceLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
@@ -246,18 +417,6 @@ export default function StatisticsChart() {
     return null;
   }
 
-  // Chuẩn bị dữ liệu cho biểu đồ giới tính
-  const genderData = [
-    { name: 'Nam', value: statistics.byGender.male || 0, color: '#31b9d8' },
-    { name: 'Nữ', value: statistics.byGender.female || 0, color: '#f9a8d4' },
-  ];
-
-  // Chuẩn bị dữ liệu cho biểu đồ độ tuổi
-  const ageData = Object.entries(statistics.byAge || {}).map(([name, value]) => ({
-    name,
-    value: value || 0,
-  }));
-
   // Chuẩn bị dữ liệu cho biểu đồ đường tham gia họp
   const attendanceDataRaw = attendanceStats?.meetings || [];
   
@@ -276,13 +435,6 @@ export default function StatisticsChart() {
   
   const availableMonths = getAvailableMonths();
 
-  // Chuẩn bị dữ liệu cho biểu đồ hình quạt tần suất tham gia
-  const frequencyChartData = frequencyStats ? [
-    { name: '>= 90%', value: frequencyStats.categories['>=90%'] || 0, color: '#10b981' },
-    { name: '70-90%', value: frequencyStats.categories['70-90%'] || 0, color: '#06b6d4' },
-    { name: '50-70%', value: frequencyStats.categories['50-70%'] || 0, color: '#fbbf24' },
-    { name: '< 50%', value: frequencyStats.categories['<50%'] || 0, color: '#ef4444' }
-  ].filter(item => item.value > 0) : [];
   
   // Filter dữ liệu theo tháng đã chọn
   const filterAttendanceData = () => {
@@ -323,256 +475,160 @@ export default function StatisticsChart() {
   });
 
   return (
-    <div className="p-8 min-h-screen">
-      <div className="mb-10">
-        <div className="inline-block mb-3">
-          <h2 className="px-4 py-1.5 bg-teal-100 text-teal-600 rounded-full text-2xl font-bold">PHÂN TÍCH DÂN SỐ</h2>
+    <div className="mx-6 flex-1 min-h-0 overflow-y-auto lg:overflow-hidden">
+      <div className="h-full min-h-0 flex flex-col gap-4">
+        <div className="shrink-0 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h2 className="text-base font-semibold accent-text">Phân tích dân số</h2>
+            <p className="text-sm text-muted-foreground">
+              Tổng cư dân: <span className="font-semibold text-teal-600">{statistics.total || 0}</span>
+            </p>
+          </div>
         </div>
-        <p className="text-slate-600 text-lg">Tổng cộng: <span className="font-bold text-teal-600 text-2xl">{statistics.total || 0}</span> <span className="text-slate-600">cư dân</span></p>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        {/* Biểu đồ tròn - Giới tính */}
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 rounded-xl">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl text-slate-800">Phân bố theo giới tính</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={genderData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={90}
-                  fill="#31b9d8"
-                  dataKey="value"
-                  animationBegin={0}
-                  animationDuration={600}
-                >
-                  {genderData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value} người`} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="mt-6 space-y-3">
-              <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-cyan-100 hover:border-cyan-300 hover:bg-cyan-50 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full" style={{backgroundColor: '#31b9d8'}}></div>
-                  <span className="text-slate-700 font-medium">Nam</span>
-                </div>
-                <span className="font-bold text-cyan-600 text-lg">{statistics.byGender.male || 0}</span>
+        <div className="grid flex-1 min-h-0 gap-4 lg:gap-3 grid-cols-1 lg:grid-cols-12 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
+          {/* Giới tính */}
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-7 lg:row-start-2">
+            <CardHeader className="py-3 lg:py-2">
+              <CardTitle className="text-base text-slate-800">Giới tính</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 min-h-0 px-4">
+              <div className="h-72 lg:h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <defs>
+                      {genderData.map((entry, index) => (
+                        <linearGradient
+                          key={`gender-grad-${index}`}
+                          id={`home-gender-grad-${index}`}
+                          x1="0"
+                          y1="0"
+                          x2="1"
+                          y2="1"
+                        >
+                          <stop offset="0%" stopColor={brighten(entry.color)} />
+                          <stop offset="100%" stopColor={deepen(entry.color)} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <Pie
+                      data={genderData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={renderPiePercentLabel}
+                      outerRadius="98%"
+                      paddingAngle={2}
+                      stroke="var(--background)"
+                      strokeWidth={2}
+                      dataKey="value"
+                      animationBegin={0}
+                      animationDuration={450}
+                    >
+                      {genderData.map((entry, index) => (
+                        <Cell
+                          key={`gender-${index}`}
+                          fill={`url(#home-gender-grad-${index})`}
+                          fillOpacity={0.95}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => `${value} người`}
+                      contentStyle={{
+                        backgroundColor: 'var(--popover)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 12,
+                      }}
+                      itemStyle={{ color: 'var(--foreground)' }}
+                      labelStyle={{ color: 'var(--muted-foreground)' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-              <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-pink-100 hover:border-pink-300 hover:bg-pink-50 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded-full" style={{backgroundColor: '#f9a8d4'}}></div>
-                  <span className="text-slate-700 font-medium">Nữ</span>
-                </div>
-                <span className="font-bold text-pink-600 text-lg">{statistics.byGender.female || 0}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Biểu đồ cột - Độ tuổi */}
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 rounded-xl">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl text-slate-800">Phân bố theo độ tuổi</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={ageData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis 
-                  dataKey="name" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  fontSize={12}
-                  tick={{ fill: '#64748b' }}
-                />
-                <YAxis tick={{ fill: '#64748b' }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#ffffff', border: '2px solid #00c2a8', borderRadius: '8px' }}
-                  cursor={{ fill: 'rgba(0, 194, 168, 0.1)' }}
-                />
-                <Bar dataKey="value" fill="#00c2a8" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-              {ageData.map((item, index) => (
-                <div key={index} className="flex flex-col items-center justify-center bg-gradient-to-br from-teal-50 to-cyan-50 p-3 rounded-lg border border-teal-200 hover:border-teal-400 hover:shadow-md transition-all">
-                  <span className="text-slate-600 text-xs font-medium mb-1">{item.name}</span>
-                  <span className="font-bold text-teal-600 text-lg">{item.value}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Biểu đồ đường - Tham gia họp */}
-      <div className="mt-8">
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 rounded-xl">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-xl text-slate-800">Mức độ tham gia các cuộc họp</CardTitle>
-                {attendanceStats && (
-                  <p className="text-sm text-slate-600 mt-2">
-                    Tổng số hộ: <span className="font-semibold text-teal-600">{attendanceStats.totalHouseholds || 0}</span>
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <label htmlFor="monthFilter" className="text-sm text-slate-600 font-medium">
-                  Chọn tháng:
-                </label>
-                <select
-                  id="monthFilter"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="px-3 py-1.5 border border-slate-300 rounded-md text-sm text-slate-700 bg-white hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
-                  disabled={availableMonths.length === 0}
-                >
-                  {availableMonths.length === 0 ? (
-                    <option value="">Đang tải...</option>
-                  ) : (
-                    availableMonths.map(monthKey => {
-                      const [year, month] = monthKey.split('-');
-                      const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 
-                                        'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
-                      return (
-                        <option key={monthKey} value={monthKey}>
-                          {monthNames[parseInt(month) - 1]} {year}
-                        </option>
-                      );
-                    })
-                  )}
-                </select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {attendanceError ? (
-              <div className="flex flex-col items-center justify-center h-64">
-                <p className="text-red-500 mb-4">Lỗi: {attendanceError}</p>
-                <button
-                  onClick={fetchAttendanceStatistics}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Thử lại
-                </button>
-              </div>
-            ) : !selectedMonth ? (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-gray-500">Đang tải dữ liệu...</p>
-              </div>
-            ) : attendanceData.length === 0 ? (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-gray-500">Không có dữ liệu tham gia họp trong tháng đã chọn</p>
-              </div>
-            ) : (
-              <>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart 
-                    data={attendanceData} 
-                    margin={{ top: 5, right: 30, left: 20, bottom: 80 }}
-                    maxBarSize={80}
-                    style={{ filter: 'none' }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis 
-                      dataKey="label" 
-                      angle={0}
-                      textAnchor="middle"
-                      height={60}
-                      fontSize={11}
-                      tick={{ fill: '#64748b' }}
-                      interval={0}
-                      minTickGap={10}
-                    />
-                    <YAxis 
-                      tick={{ fill: '#64748b' }}
-                      label={{ value: 'Số hộ', angle: -90, position: 'insideLeft', style: { fill: '#64748b' } }}
-                    />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#ffffff', border: '2px solid #00c2a8', borderRadius: '8px', whiteSpace: 'pre-wrap' }}
-                      formatter={(value, name) => {
-                        if (name === 'attendanceRate') {
-                          return [`${value}%`, 'Tỷ lệ tham gia'];
-                        }
-                        return [value, name === 'attended' ? 'Tham gia' : 'Vắng mặt'];
+          {/* Độ tuổi */}
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-10 lg:row-start-2">
+            <CardHeader className="py-3 lg:py-2">
+              <CardTitle className="text-base text-slate-800">Độ tuổi</CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 min-h-0 px-4">
+              <div className="h-64 lg:h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={ageData} margin={{ top: 8, right: 10, left: 0, bottom: 28 }}>
+                    <defs>
+                      {ageBarColors.map((color, index) => (
+                        <linearGradient
+                          key={`age-grad-${index}`}
+                          id={`home-age-grad-${index}`}
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop offset="0%" stopColor={brighten(color)} />
+                          <stop offset="100%" stopColor={deepen(color)} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="name" height={28} fontSize={11} tick={{ fill: 'var(--muted-foreground)' }} />
+                    <YAxis tick={{ fill: 'var(--muted-foreground)' }} width={34} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'var(--popover)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 12,
                       }}
-                      labelFormatter={(label, payload) => {
-                        if (payload && payload[0] && payload[0].payload) {
-                          const meeting = payload[0].payload;
-                          return `Ngày: ${meeting.date}\nCuộc họp: ${meeting.fullTopic || meeting.topic}`;
-                        }
-                        return `Ngày: ${label}`;
-                      }}
+                      cursor={{ fill: "rgba(var(--primary-rgb), 0.08)" }}
                     />
-                    <Legend 
-                      formatter={(value) => {
-                        if (value === 'attendanceRate') return 'Tỷ lệ tham gia (%)';
-                        if (value === 'attended') return 'Số hộ tham gia';
-                        if (value === 'absent') return 'Số hộ vắng mặt';
-                        return value;
-                      }}
-                    />
-                    <Bar 
-                      dataKey="attended" 
-                      stackId="households"
-                      fill="#10b981" 
-                      name="attended"
-                      radius={[0, 0, 0, 0]}
-                      activeBar={{ fillOpacity: 1, stroke: '#10b981', strokeWidth: 2, filter: 'none' }}
-                    />
-                    <Bar 
-                      dataKey="absent" 
-                      stackId="households"
-                      fill="#ef4444" 
-                      name="absent"
-                      radius={[8, 8, 0, 0]}
-                      activeBar={{ fillOpacity: 1, stroke: '#ef4444', strokeWidth: 2, filter: 'none' }}
-                    />
+                    <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                      {ageData.map((entry, index) => (
+                        <Cell
+                          key={`age-${entry.name}-${index}`}
+                          fill={`url(#home-age-grad-${index % ageBarColors.length})`}
+                        />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Biểu đồ hình quạt - Tần suất tham gia họp */}
-      <div className="mt-8">
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 rounded-xl">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xl text-slate-800">Tần suất tham gia họp của hộ gia đình</CardTitle>
-              <div className="flex items-center gap-2">
-                <label htmlFor="frequencyMonthFilter" className="text-sm text-slate-600 font-medium">
-                  Chọn tháng:
-                </label>
+          {/* Tần suất */}
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-7 lg:row-start-1">
+            <CardHeader className="py-3 lg:py-2">
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle className="text-base text-slate-800">Tần suất tham gia</CardTitle>
                 <select
                   id="frequencyMonthFilter"
                   value={selectedFrequencyMonth}
                   onChange={(e) => setSelectedFrequencyMonth(e.target.value)}
-                  className="px-3 py-1.5 border border-slate-300 rounded-md text-sm text-slate-700 bg-white hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                  className="px-2 py-1 border border-slate-300 rounded-md text-xs text-slate-700 bg-white hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                   disabled={availableMonths.length === 0}
                 >
                   {availableMonths.length === 0 ? (
                     <option value="">Đang tải...</option>
                   ) : (
-                    availableMonths.map(monthKey => {
-                      const [year, month] = monthKey.split('-');
-                      const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 
-                                        'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+                    availableMonths.map((monthKey) => {
+                      const [year, month] = monthKey.split("-");
+                      const monthNames = [
+                        "Tháng 1",
+                        "Tháng 2",
+                        "Tháng 3",
+                        "Tháng 4",
+                        "Tháng 5",
+                        "Tháng 6",
+                        "Tháng 7",
+                        "Tháng 8",
+                        "Tháng 9",
+                        "Tháng 10",
+                        "Tháng 11",
+                        "Tháng 12",
+                      ];
                       return (
                         <option key={monthKey} value={monthKey}>
                           {monthNames[parseInt(month) - 1]} {year}
@@ -582,144 +638,393 @@ export default function StatisticsChart() {
                   )}
                 </select>
               </div>
-            </div>
-            {frequencyStats && (
-              <p className="text-sm text-slate-600 mt-2">
-                Tổng số hộ: <span className="font-semibold text-teal-600">{frequencyStats.totalHouseholds || 0}</span>
-                {' • '}
-                Tổng số cuộc họp: <span className="font-semibold text-teal-600">{frequencyStats.totalMeetings || 0}</span>
-              </p>
-            )}
-          </CardHeader>
-          <CardContent>
-            {frequencyError ? (
-              <div className="flex flex-col items-center justify-center h-64">
-                <p className="text-red-500 mb-4">Lỗi: {frequencyError}</p>
-                <button
-                  onClick={() => selectedFrequencyMonth && fetchFrequencyStats(selectedFrequencyMonth)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Thử lại
-                </button>
-              </div>
-            ) : frequencyLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-gray-500">Đang tải...</p>
-              </div>
-            ) : !selectedFrequencyMonth ? (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-gray-500">Vui lòng chọn tháng</p>
-              </div>
-            ) : frequencyChartData.length === 0 ? (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-gray-500">Không có dữ liệu cho tháng đã chọn</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <ResponsiveContainer width="100%" height={300}>
+              {frequencyStats && (
+                <p className="text-xs text-slate-600">
+                  Hộ: <span className="font-semibold text-teal-600">{frequencyStats.totalHouseholds || 0}</span>
+                  {" • "}
+                  Họp: <span className="font-semibold text-teal-600">{frequencyStats.totalMeetings || 0}</span>
+                </p>
+              )}
+            </CardHeader>
+            <CardContent className="flex-1 min-h-0 px-4">
+              {frequencyError ? (
+                <div className="flex items-center justify-center h-64 lg:h-full">
+                  <p className="text-red-500">Lỗi: {frequencyError}</p>
+                </div>
+              ) : frequencyLoading || !selectedFrequencyMonth ? (
+                <div className="flex items-center justify-center h-64 lg:h-full">
+                  <p className="text-gray-500">Đang tải...</p>
+                </div>
+              ) : frequencyChartData.length === 0 ? (
+                <div className="flex items-center justify-center h-64 lg:h-full">
+                  <p className="text-gray-500">Không có dữ liệu</p>
+                </div>
+              ) : (
+                <div className="h-72 lg:h-full">
+                  <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
+                      <defs>
+                        {frequencyChartData.map((entry, index) => (
+                          <linearGradient
+                            key={`freq-grad-${index}`}
+                            id={`home-freq-grad-${index}`}
+                            x1="0"
+                            y1="0"
+                            x2="1"
+                            y2="1"
+                          >
+                            <stop offset="0%" stopColor={brighten(entry.color)} />
+                            <stop offset="100%" stopColor={deepen(entry.color)} />
+                          </linearGradient>
+                        ))}
+                      </defs>
                       <Pie
                         data={frequencyChartData}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={100}
-                        fill="#8884d8"
+                        label={renderPiePercentLabel}
+                        outerRadius="98%"
+                        paddingAngle={2}
+                        stroke="var(--background)"
+                        strokeWidth={2}
                         dataKey="value"
                         animationBegin={0}
-                        animationDuration={600}
+                        animationDuration={450}
                       >
                         {frequencyChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
+                          <Cell
+                            key={`freq-${index}`}
+                            fill={`url(#home-freq-grad-${index})`}
+                            fillOpacity={entry.opacity ?? 0.92}
+                          />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => `${value} hộ`} />
-                      <Legend />
+                      <Tooltip
+                        formatter={(value) => `${value} hộ`}
+                        contentStyle={{
+                          backgroundColor: 'var(--popover)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 12,
+                        }}
+                        itemStyle={{ color: 'var(--foreground)' }}
+                        labelStyle={{ color: 'var(--muted-foreground)' }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="space-y-3">
-                  {frequencyChartData.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all">
-                      <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-full" style={{backgroundColor: item.color}}></div>
-                        <span className="text-slate-700 font-medium">{item.name}</span>
-                      </div>
-                      <span className="font-bold text-slate-800 text-lg">{item.value} hộ</span>
-                    </div>
-                  ))}
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Tham gia họp */}
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-6 lg:col-start-1 lg:row-start-1">
+            <CardHeader className="py-3 lg:py-2">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base text-slate-800">Tham gia họp</CardTitle>
+                  {attendanceStats && (
+                    <p className="text-xs text-slate-600">
+                      Tổng số hộ: <span className="font-semibold text-teal-600">{attendanceStats.totalHouseholds || 0}</span>
+                    </p>
+                  )}
+                </div>
+                <select
+                  id="monthFilter"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="px-2 py-1 border border-slate-300 rounded-md text-xs text-slate-700 bg-white hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                  disabled={availableMonths.length === 0}
+                >
+                  {availableMonths.length === 0 ? (
+                    <option value="">Đang tải...</option>
+                  ) : (
+                    availableMonths.map((monthKey) => {
+                      const [year, month] = monthKey.split("-");
+                      const monthNames = [
+                        "Tháng 1",
+                        "Tháng 2",
+                        "Tháng 3",
+                        "Tháng 4",
+                        "Tháng 5",
+                        "Tháng 6",
+                        "Tháng 7",
+                        "Tháng 8",
+                        "Tháng 9",
+                        "Tháng 10",
+                        "Tháng 11",
+                        "Tháng 12",
+                      ];
+                      return (
+                        <option key={monthKey} value={monthKey}>
+                          {monthNames[parseInt(month) - 1]} {year}
+                        </option>
+                      );
+                    })
+                  )}
+                </select>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 min-h-0 px-4">
+              {attendanceError ? (
+                <div className="flex items-center justify-center h-80 lg:h-full">
+                  <p className="text-red-500">Lỗi: {attendanceError}</p>
+                </div>
+              ) : !selectedMonth ? (
+                <div className="flex items-center justify-center h-80 lg:h-full">
+                  <p className="text-gray-500">Đang tải dữ liệu...</p>
+                </div>
+              ) : attendanceData.length === 0 ? (
+                <div className="flex items-center justify-center h-80 lg:h-full">
+                  <p className="text-gray-500">Không có dữ liệu</p>
+                </div>
+              ) : (
+                <div className="h-72 lg:h-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={attendanceData} margin={{ top: 8, right: 16, left: 6, bottom: 34 }} maxBarSize={70}>
+                      <defs>
+                        <linearGradient id="home-attended-grad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={brighten('var(--primary)')} />
+                          <stop offset="100%" stopColor={deepen('var(--brand-cyan)')} />
+                        </linearGradient>
+                        <linearGradient id="home-absent-grad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={brighten(attendanceAbsentColor)} />
+                          <stop offset="100%" stopColor={deepen(attendanceAbsentColor)} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <XAxis dataKey="label" height={34} fontSize={10} tick={{ fill: 'var(--muted-foreground)' }} interval="preserveStartEnd" />
+                      <YAxis tick={{ fill: 'var(--muted-foreground)' }} width={34} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--popover)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 12,
+                          whiteSpace: "pre-wrap",
+                        }}
+                        formatter={(value, name) => {
+                          if (name === "attendanceRate") {
+                            return [`${value}%`, "Tỷ lệ tham gia"];
+                          }
+                          return [value, name === "attended" ? "Tham gia" : "Vắng mặt"];
+                        }}
+                        labelFormatter={(label, payload) => {
+                          if (payload && payload[0] && payload[0].payload) {
+                            const meeting = payload[0].payload;
+                            return `Ngày: ${meeting.date}\nCuộc họp: ${meeting.fullTopic || meeting.topic}`;
+                          }
+                          return `Ngày: ${label}`;
+                        }}
+                      />
+                      <Legend
+                        wrapperStyle={{ fontSize: 12, color: 'var(--muted-foreground)' }}
+                        formatter={(value) => {
+                          if (value === "attendanceRate") return "Tỷ lệ tham gia (%)";
+                          if (value === "attended") return "Tham gia";
+                          if (value === "absent") return "Vắng mặt";
+                          return value;
+                        }}
+                      />
+                      <Bar dataKey="attended" stackId="households" fill="url(#home-attended-grad)" fillOpacity={0.96} name="attended" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="absent" stackId="households" fill="url(#home-absent-grad)" fillOpacity={0.96} name="absent" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Biến động nhân khẩu */}
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-6 lg:col-start-1 lg:row-start-2">
+            <CardHeader className="py-3 lg:py-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <CardTitle className="text-base text-slate-800">Biến động nhân khẩu</CardTitle>
+                  <p className="text-xs text-slate-600">
+                    Tạm trú / Tạm vắng theo thời gian
+                  </p>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-2">
+                  <label htmlFor="year-select" className="text-xs text-slate-600 font-medium">
+                    Năm:
+                  </label>
+                  <select
+                    id="year-select"
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="px-2 py-1 border border-slate-300 rounded-md text-xs text-slate-700 bg-white hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                  >
+                    <option value="">Tất cả</option>
+                    {availableYears.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
-            )}
-
-            {/* Danh sách gia đình văn hóa */}
-            <div className="mt-8 pt-6 border-t border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">Gia đình văn hóa (Tỷ lệ tham gia ≥ 90% trong năm)</h3>
-              {culturalFamiliesError ? (
-                <div className="flex flex-col items-center justify-center py-8">
-                  <p className="text-red-500 mb-4">Lỗi: {culturalFamiliesError}</p>
+            </CardHeader>
+            <CardContent className="flex-1 min-h-0 px-4">
+              {temporaryStayLeaveError ? (
+                <div className="flex flex-col items-center justify-center h-64 lg:h-full">
+                  <p className="text-red-500">Lỗi: {temporaryStayLeaveError}</p>
                   <button
-                    onClick={fetchCulturalFamilies}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    onClick={() => fetchTemporaryStayLeaveStatistics(selectedYear || null)}
+                    className="mt-2 px-4 py-2 rounded-md accent-btn action-btn"
                   >
                     Thử lại
                   </button>
                 </div>
+              ) : temporaryStayLeaveLoading ? (
+                <div className="flex items-center justify-center h-64 lg:h-full">
+                  <p className="text-gray-500">Đang tải...</p>
+                </div>
+              ) : !temporaryStayLeaveStats || temporaryStayLeaveStats.length === 0 ? (
+                <div className="flex items-center justify-center h-64 lg:h-full">
+                  <p className="text-gray-500">Chưa có dữ liệu</p>
+                </div>
+              ) : (
+                <div className="h-72 lg:h-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={temporaryStayLeaveStats} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <XAxis
+                        dataKey="monthLabel"
+                        height={26}
+                        fontSize={10}
+                        tick={{ fill: 'var(--muted-foreground)' }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis tick={{ fill: 'var(--muted-foreground)' }} width={34} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--popover)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 12,
+                        }}
+                        itemStyle={{ color: 'var(--foreground)' }}
+                        labelStyle={{ color: 'var(--muted-foreground)' }}
+                        formatter={(value, name) => [value, name === 'temporaryStay' ? 'Tạm trú' : 'Tạm vắng']}
+                        labelFormatter={(label) => `Thời gian: ${label}`}
+                      />
+                      <Legend
+                        wrapperStyle={{ fontSize: 12, color: 'var(--muted-foreground)' }}
+                        formatter={(value) => {
+                          if (value === 'temporaryStay') return 'Tạm trú';
+                          if (value === 'temporaryLeave') return 'Tạm vắng';
+                          return value;
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="temporaryStay"
+                        stroke="var(--primary)"
+                        strokeWidth={2.5}
+                        dot={{ fill: 'var(--primary)', r: 3.5 }}
+                        activeDot={{ r: 5 }}
+                        name="temporaryStay"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="temporaryLeave"
+                        stroke="var(--destructive)"
+                        strokeWidth={2.5}
+                        dot={{ fill: 'var(--destructive)', r: 3.5 }}
+                        activeDot={{ r: 5 }}
+                        name="temporaryLeave"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Gia đình văn hóa */}
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-10 lg:row-start-1">
+            <CardHeader className="py-3 lg:py-2">
+              <CardTitle className="text-base text-slate-800">Gia đình văn hóa</CardTitle>
+              <p className="text-xs text-slate-600">Tỷ lệ tham gia ≥ 90% trong năm</p>
+            </CardHeader>
+            <CardContent className="flex-1 min-h-0 px-4">
+              {culturalFamiliesError ? (
+                <div className="flex items-center justify-center h-80 lg:h-full">
+                  <p className="text-red-500">Lỗi: {culturalFamiliesError}</p>
+                </div>
               ) : culturalFamiliesLoading ? (
-                <div className="flex items-center justify-center py-8">
+                <div className="flex items-center justify-center h-80 lg:h-full">
                   <p className="text-gray-500">Đang tải...</p>
                 </div>
               ) : !culturalFamilies || culturalFamilies.length === 0 ? (
-                <div className="flex items-center justify-center py-8">
-                  <p className="text-gray-500">Chưa có hộ gia đình nào đạt tiêu chí gia đình văn hóa</p>
+                <div className="flex items-center justify-center h-80 lg:h-full">
+                  <p className="text-gray-500">Chưa có dữ liệu</p>
                 </div>
               ) : (
-                <>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Tổng số: <span className="font-semibold text-teal-600">{culturalFamilies.length}</span> hộ gia đình
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-                    {culturalFamilies.map((household, index) => (
-                      <div 
-                        key={household.householdId} 
-                        className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200 hover:border-green-400 hover:shadow-md transition-all"
-                      >
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-sm">
-                            {index + 1}
-                          </div>
-                          <span className="text-xs font-medium text-green-700">Gia đình văn hóa</span>
-                        </div>
-                        <div className="space-y-2">
-                          <div>
-                            <p className="text-xs text-slate-600 mb-1">Mã hộ:</p>
-                            <p className="text-sm font-semibold text-slate-800">{household.householdCode}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-slate-600 mb-1">Chủ hộ:</p>
-                            <p className="text-sm font-medium text-slate-800">{household.headName}</p>
-                          </div>
-                          <div className="pt-2 border-t border-green-200">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-slate-600">Số lần tham gia:</span>
-                              <span className="font-bold text-green-600">{household.attendanceCount}/{household.totalMeetings}</span>
-                            </div>
-                            <div className="flex justify-between items-center mt-1">
-                              <span className="text-xs text-slate-600">Tỷ lệ:</span>
-                              <span className="font-bold text-green-600">{household.attendanceRate.toFixed(1)}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                <div className="h-full flex flex-col min-h-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-slate-600">
+                      Tổng số: <span className="font-semibold text-teal-600">{culturalFamilies.length}</span> hộ
+                    </p>
+                    <p className="text-[11px] text-slate-500">Hiển thị 5 hộ</p>
                   </div>
-                </>
+
+                  <div className="grid grid-cols-1 gap-1.5 flex-1 min-h-0">
+                    {[...culturalFamilies]
+                      .sort((a, b) => (b.attendanceRate || 0) - (a.attendanceRate || 0))
+                      .slice(0, 5)
+                      .map((household, index) => {
+                        const highlight = getCulturalHighlight(index);
+                        const isTop = index === 0;
+                        const isSecond = index === 1;
+                        const isThird = index === 2;
+                        const baseClass = "relative p-2 rounded-lg border transition-all";
+                        const normalClass = "bg-white/80 border-slate-200 table-row-hover hover:bg-transparent hover:border-slate-300";
+                        const highlightClass = "border-transparent";
+                        return (
+                        <div
+                          key={household.householdId}
+                            className={`${baseClass} ${isTop || isSecond || isThird ? highlightClass : normalClass}`}
+                          style={highlight || undefined}
+                        >
+                            {isTop ? (
+                              <div
+                                className="absolute -top-2 -right-2 rounded-full p-1.5"
+                                style={{
+                                  background: 'var(--gold-gradient)',
+                                  boxShadow: '0 10px 18px rgba(var(--gold-rgb),0.22)',
+                                }}
+                                aria-label="Hạng 1"
+                                title="Hạng 1"
+                              >
+                                <Crown className="h-4 w-4" style={{ color: 'var(--primary-foreground)' }} />
+                              </div>
+                            ) : null}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-[11px] text-slate-600 truncate">
+                                <span className="font-semibold text-slate-800">{household.householdCode}</span>
+                                {household.headName ? (
+                                  <span className="text-slate-500"> • {household.headName}</span>
+                                ) : null}
+                              </p>
+                              <p className="text-[11px] text-slate-600">
+                                Tham gia: <span className="font-semibold text-slate-800">{household.attendanceCount}/{household.totalMeetings}</span>
+                              </p>
+                            </div>
+                            <div className="shrink-0 text-right">
+                              <p className="font-bold text-slate-900 text-sm leading-4">{household.attendanceRate.toFixed(1)}%</p>
+                            </div>
+                          </div>
+                        </div>
+                        );
+                      })}
+                  </div>
+                </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

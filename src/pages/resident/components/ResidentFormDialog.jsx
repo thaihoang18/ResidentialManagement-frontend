@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 
 export default function ResidentFormDialog({ open, onClose, onSaved, initialData }) {
   const [form, setForm] = useState({
@@ -91,6 +92,7 @@ useEffect(() => {
 }, [open]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleDateChange = (name) => (nextValue) => setForm({ ...form, [name]: nextValue });
 
   const handleDateChange = (name, value) => {
     setDisplayDates((s) => ({ ...s, [name]: value }));

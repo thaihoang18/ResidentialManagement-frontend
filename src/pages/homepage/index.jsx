@@ -5,11 +5,11 @@ import StatisticsChart from './components/StatisticsChart.jsx'
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen flex flex-col gap-3">  
-        <Header />
-        <StatisticsChart />
-        <Footer />
-      </div>
+    <div className="min-h-screen flex flex-col gap-3 lg:h-screen lg:overflow-hidden">
+      <Header />
+      <StatisticsChart />
+      <Footer />
+    </div>
   )
 }
 

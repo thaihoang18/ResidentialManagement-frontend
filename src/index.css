@@ -80,6 +80,83 @@
   --input: #f9fafb;
   --ring: #cff9f3;
 
+  /* Gold/Silver tokens (for ranking highlights) */
+  --gold: #f59e0b; /* amber-500 */
+  --gold-rgb: 245,158,11;
+  --gold-light: #fcd34d; /* amber-300 */
+  --gold-dark: #b45309; /* amber-700 */
+  --silver: #cbd5e1; /* slate-300 */
+  --silver-rgb: 203,213,225;
+  --silver-light: #f1f5f9; /* slate-100 */
+  --silver-dark: #94a3b8; /* slate-400 */
+
+  --bronze: #c26a2e;
+  --bronze-rgb: 194,106,46;
+  --bronze-light: #f2b48a;
+  --bronze-dark: #7a3e19;
+
+  /* Metallic gradients (layered highlights + base) */
+  --gold-gradient: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 46%, var(--gold-dark) 100%);
+  --gold-metal: 
+    linear-gradient(
+      120deg,
+      rgba(255,255,255,0.62) 0%,
+      rgba(255,255,255,0.08) 18%,
+      rgba(255,255,255,0.38) 33%,
+      rgba(255,255,255,0.06) 48%,
+      rgba(255,255,255,0.44) 63%,
+      rgba(255,255,255,0.10) 78%,
+      rgba(255,255,255,0.56) 100%
+    ),
+    var(--gold-gradient);
+
+  --silver-gradient: linear-gradient(135deg, var(--silver-light) 0%, var(--silver) 55%, var(--silver-dark) 100%);
+  --silver-metal:
+    linear-gradient(
+      120deg,
+      rgba(255,255,255,0.70) 0%,
+      rgba(255,255,255,0.14) 20%,
+      rgba(255,255,255,0.52) 36%,
+      rgba(255,255,255,0.12) 52%,
+      rgba(255,255,255,0.58) 66%,
+      rgba(255,255,255,0.16) 80%,
+      rgba(255,255,255,0.66) 100%
+    ),
+    var(--silver-gradient);
+
+  --bronze-gradient: linear-gradient(135deg, var(--bronze-light) 0%, var(--bronze) 52%, var(--bronze-dark) 100%);
+  --bronze-metal:
+    linear-gradient(
+      120deg,
+      rgba(255,255,255,0.56) 0%,
+      rgba(255,255,255,0.10) 18%,
+      rgba(255,255,255,0.42) 34%,
+      rgba(255,255,255,0.08) 50%,
+      rgba(255,255,255,0.46) 66%,
+      rgba(255,255,255,0.12) 82%,
+      rgba(255,255,255,0.50) 100%
+    ),
+    var(--bronze-gradient);
+
+  /* Homepage: Frequency (Tần suất tham gia) palette */
+  --freq-90: #ff8130;
+  --freq-70-90: #7ca1ff;
+  --freq-50-70: #ff7da0;
+  --freq-lt-50: #9878de;
+
+  /* Homepage: Gender (Giới tính) palette */
+  --gender-female: #e86dbc;
+
+  /* Homepage: Age (Độ tuổi) palette (distinct, not shared with other charts) */
+  --age-1: #00b3ff;
+  --age-2: #ffb703;
+  --age-3: #a3e635;
+  --age-4: #8b5cf6;
+  --age-5: #14b8a6;
+  --age-6: #f43f5e;
+  --age-7: #d946ef;
+  --age-8: #94a3b8;
+
   --chart-1: #008271; /* strong, darker */
   --chart-2: #00c2a8; /* base (primary) */
   --chart-3: #5dd8c4; /* light hover */
