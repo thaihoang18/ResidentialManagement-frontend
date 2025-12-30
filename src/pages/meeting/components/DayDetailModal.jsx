@@ -39,25 +39,24 @@ export default function DayDetailModal({
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div
-        className="bg-white rounded-lg p-5 w-[calc(100%-2rem)] max-w-5xl shadow-lg max-h-[calc(100vh-2rem)] flex flex-col"
-        style={{ backgroundColor: '#ffffff', color: '#000000' }}
+        className="glass-panel rounded-xl border p-5 w-[calc(100%-2rem)] max-w-5xl max-h-[calc(100vh-2rem)] flex flex-col"
       >
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-semibold accent-text">Chi tiết ngày {day.getDate()}/{day.getMonth()+1}/{day.getFullYear()}</h2>
           <Button aria-label="Đóng" variant="ghost" size="icon" onClick={onClose} className="accent-text close-btn"><XIcon className="w-5 h-5"/></Button>
         </div>
-        <div className="mb-3 text-sm text-gray-600">Tổng số cuộc họp: {dayEvents.length}</div>
+        <div className="mb-3 text-sm text-muted-foreground">Tổng số cuộc họp: {dayEvents.length}</div>
 
         <div className="flex-1 min-h-0 overflow-auto">
           {dayEvents.length === 0 && (
-            <div className="text-gray-400 text-sm">Không có cuộc họp nào.</div>
+            <div className="text-muted-foreground text-sm">Không có cuộc họp nào.</div>
           )}
 
           <div className="flex flex-col gap-3">
             {dayEvents.map((ev) => (
               <div
                 key={ev.id}
-                className="border rounded-md p-4 bg-gray-50 event-accent"
+                className="glass-panel border rounded-md p-4 event-accent"
                 style={{ borderLeftWidth: 6, borderLeftColor: ev?.color || "#32f1cd" }}
               >
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
@@ -65,29 +64,29 @@ export default function DayDetailModal({
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                       <div className="font-semibold text-base break-words">{ev.title}</div>
                     </div>
-                    <div className="text-sm text-gray-700 mt-2">
+                    <div className="text-sm text-foreground mt-2">
                       <span className="font-medium">Thời gian:</span>{" "}
-                      <span className="text-gray-600">{ev.time || "-"}</span>
+                      <span className="text-muted-foreground">{ev.time || "-"}</span>
                     </div>
-                    <div className="text-sm text-gray-700 mt-1">
+                    <div className="text-sm text-foreground mt-1">
                       <span className="font-medium">Địa điểm:</span>{" "}
-                      <span className="text-gray-600">{ev.location || "-"}</span>
+                      <span className="text-muted-foreground">{ev.location || "-"}</span>
                     </div>
-                    <div className="text-sm text-gray-700 mt-2">
+                    <div className="text-sm text-foreground mt-2">
                       <span className="font-medium">Mô tả:</span>
                       {ev.description ? (
-                        <div className="text-gray-700 mt-1 whitespace-pre-wrap break-words">
+                        <div className="text-foreground mt-1 whitespace-pre-wrap break-words">
                           {ev.description}
                         </div>
                       ) : (
-                        <div className="text-gray-400 mt-1">(Không có mô tả)</div>
+                        <div className="text-muted-foreground mt-1">(Không có mô tả)</div>
                       )}
                     </div>
 
                     {Array.isArray(ev.tasks) && ev.tasks.length > 0 && (
                       <div className="mt-3">
-                        <div className="text-sm font-medium text-gray-700 mb-1">Công việc:</div>
-                        <ul className="list-disc pl-5 text-sm text-gray-700 space-y-0.5">
+                        <div className="text-sm font-medium text-foreground mb-1">Công việc:</div>
+                        <ul className="list-disc pl-5 text-sm text-foreground space-y-0.5">
                           {ev.tasks.map((t, i) => (
                             <li key={i} className="break-words">{t}</li>
                           ))}

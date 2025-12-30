@@ -5,7 +5,7 @@ import { PlusIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 export default function CalendarHeader({ monthName, year, onPrev, onNext, onToday, onAdd }) {
     return (
         <div className="mb-6">
-            <div className="page-header rounded-2xl shadow-lg px-6 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6 header-gradient border border-border/60">
+            <div className="page-header glass-header rounded-2xl shadow-lg px-6 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6 header-gradient border border-border/60">
                 <div className="flex flex-col gap-2">
                     <h1 className="text-4xl font-bold tracking-tight drop-shadow-sm accent-text">Lịch họp</h1>
                     <p className="text-base text-muted-foreground">Xem và quản lý các cuộc họp của cộng đồng</p>
