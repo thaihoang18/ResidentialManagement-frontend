@@ -170,7 +170,7 @@ export default function HouseholdFormDialog({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="bg-white accent-outline transition-transform hover:-translate-y-0.5"
+                  className="accent-outline action-btn"
                   onClick={() => {
                     onChange({ ...form, head_id: "" });
                     setHeadQuery("");
@@ -212,10 +212,10 @@ export default function HouseholdFormDialog({
           {error ? <div className="text-sm text-destructive">{error}</div> : null}
 
           <DialogFooter>
-            <Button type="button" variant="outline" size="sm" className="bg-white accent-outline transition-transform hover:-translate-y-0.5" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" size="sm" className="accent-outline action-btn" onClick={() => onOpenChange(false)}>
               Hủy
             </Button>
-            <Button type="submit" className="accent-btn transition-transform hover:-translate-y-0.5" disabled={saving}>
+            <Button type="submit" className="accent-btn action-btn" disabled={saving}>
               {saving ? "Đang lưu..." : submitLabel}
             </Button>
           </DialogFooter>

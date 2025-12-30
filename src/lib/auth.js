@@ -1,5 +1,13 @@
 const API_BASE = import.meta.env.VITE_API_URL || "";
 
+export function getRoleFromEmail(email) {
+  const normalized = (email || "").toLowerCase();
+  if (normalized.includes("leader") || normalized.includes("deputy")) return "admin";
+  if (normalized.includes("officer")) return "officer";
+  // Default to the more restrictive role when unknown
+  return "officer";
+}
+
 export async function login(email, password) {
   const res = await fetch(`${API_BASE}/api/auth`, {
     method: "POST",
@@ -10,7 +18,8 @@ export async function login(email, password) {
   const data = await res.json().catch(() => ({}));
 
   if (res.ok && data.success) {
-    localStorage.setItem("rm_user", JSON.stringify({ email }));
+    const role = getRoleFromEmail(email);
+    localStorage.setItem("rm_user", JSON.stringify({ email, role }));
     try {
       window.dispatchEvent(new Event('rm_auth_changed'))
     } catch (e) {}
@@ -33,8 +42,16 @@ export function isAuthenticated() {
 
 export function getUser() {
   try {
-    return JSON.parse(localStorage.getItem("rm_user"));
+    const user = JSON.parse(localStorage.getItem("rm_user"));
+    if (!user) return null;
+    if (!user.role) return { ...user, role: getRoleFromEmail(user.email) };
+    return user;
   } catch (e) {
     return null;
   }
+}
+
+export function getUserRole() {
+  const user = getUser();
+  return user?.role || getRoleFromEmail(user?.email);
 }
