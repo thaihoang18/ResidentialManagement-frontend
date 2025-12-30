@@ -126,7 +126,7 @@ function Meeting() {
         time: "09:00",
         location: "",
         description: "",
-        tasks: "",
+        tasks: [""],
         creator_id: 1
     });
     const [selectedDay, setSelectedDay] = useState(null); // for day detail popup
@@ -345,7 +345,7 @@ function Meeting() {
             time: "09:00",
             location: "",
             description: "",
-            tasks: "",
+            tasks: [""],
             creator_id: 1
         });
         setShowForm(true);
@@ -360,7 +360,7 @@ function Meeting() {
             time: event.time,
             location: event.location,
             description: event.description,
-            tasks: event.tasks ? event.tasks.join("; ") : "",
+            tasks: Array.isArray(event.tasks) && event.tasks.length > 0 ? event.tasks : [""],
             creator_id: event.creator_id || 1
         });
         setShowForm(true);
@@ -370,11 +370,14 @@ function Meeting() {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        const tasks = Array.isArray(form.tasks)
+            ? form.tasks.map((t) => String(t ?? "").trim()).filter(Boolean)
+            : [];
         // include timezone offset so backend interprets the datetime as local
         const payload = {
             topic: form.title,
             content: form.description,
-            tasks: form.tasks ? form.tasks.split(";").map(t => t.trim()).filter(Boolean) : [],
+            tasks,
             location: form.location,
             time: `${form.date}T${form.time}:00`,
             creator_id: form.creator_id
@@ -433,7 +436,7 @@ function Meeting() {
                     time: "09:00",
                     location: "",
                     description: "",
-                    tasks: "",
+                    tasks: [""],
                     creator_id: 1
                 });
             }
