@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 
 export default function ResidentFormDialog({ open, onClose, onSaved, initialData }) {
   const [form, setForm] = useState({
@@ -28,6 +29,7 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
   }, [initialData]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleDateChange = (name) => (nextValue) => setForm({ ...form, [name]: nextValue });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,7 +57,7 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-2 max-h-[70vh] overflow-y-auto pr-2">
           <label>Họ và tên:</label><Input name="full_name" placeholder="Họ và tên" value={form.full_name || ""} onChange={handleChange} />
-          <label>Ngày sinh:</label><Input name="date_of_birth" type="date" placeholder="Ngày sinh" value={form.date_of_birth ? form.date_of_birth.substring(0,10) : ""} onChange={handleChange} />
+          <label>Ngày sinh:</label><DatePicker name="date_of_birth" placeholder="Ngày sinh" value={form.date_of_birth ? form.date_of_birth.substring(0,10) : ""} onChange={handleDateChange("date_of_birth")} />
           <label>Nơi sinh:</label><Input name="place_of_birth" placeholder="Nơi sinh" value={form.place_of_birth || ""} onChange={handleChange} />
           <label>Quê quán:</label><Input name="native_place" placeholder="Quê quán" value={form.native_place || ""} onChange={handleChange} />
           <label>Giới tính:</label>
@@ -70,10 +72,10 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
           <label>Dân tộc:</label><Input name="ethnicity" placeholder="Dân tộc" value={form.ethnicity || ""} onChange={handleChange} />
           <label>Nghề nghiệp:</label><Input name="occupation" placeholder="Nghề nghiệp" value={form.occupation || ""} onChange={handleChange} />
           <label>Số CMND/CCCD:</label><Input name="id_number" placeholder="Số CMND/CCCD" value={form.id_number || ""} onChange={handleChange} />
-          <label>Ngày cấp:</label><Input name="id_issue_date" type="date" placeholder="Ngày cấp" value={form.id_issue_date ? form.id_issue_date.substring(0,10) : ""} onChange={handleChange} />
+          <label>Ngày cấp:</label><DatePicker name="id_issue_date" placeholder="Ngày cấp" value={form.id_issue_date ? form.id_issue_date.substring(0,10) : ""} onChange={handleDateChange("id_issue_date")} />
           <label>Nơi cấp:</label><Input name="id_issue_place" placeholder="Nơi cấp" value={form.id_issue_place || ""} onChange={handleChange} />
           <label>STT hộ khẩu:</label><Input name="household_id" placeholder="STT hộ khẩu" value={form.household_id || ""} onChange={handleChange} />
-          <label>Ngày đăng ký thường trú:</label><Input name="registration_date" type="date" placeholder="Ngày đăng ký thường trú" value={form.registration_date ? form.registration_date.substring(0,10) : ""} onChange={handleChange} />
+          <label>Ngày đăng ký thường trú:</label><DatePicker name="registration_date" placeholder="Ngày đăng ký thường trú" value={form.registration_date ? form.registration_date.substring(0,10) : ""} onChange={handleDateChange("registration_date")} />
           {/* <label>Quan hệ:</label><Input name="relation_to_head" placeholder="Quan hệ" value={form.relation_to_head || ""} onChange={handleChange} /> */}
           <label>Quan hệ:</label>
             <select

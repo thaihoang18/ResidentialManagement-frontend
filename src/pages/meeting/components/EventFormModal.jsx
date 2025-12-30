@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { XIcon } from "lucide-react";
 
 export default function EventFormModal({ show, form, setForm, onClose, onSubmit }) {
@@ -41,7 +42,13 @@ export default function EventFormModal({ show, form, setForm, onClose, onSubmit 
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="block text-sm font-medium mb-1">Ngày</label>
-              <Input required type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+              <DatePicker
+                name="date"
+                required
+                placeholder="Chọn ngày"
+                value={form.date}
+                onChange={(next) => setForm({ ...form, date: next })}
+              />
             </div>
             <div className="w-36">
               <label className="block text-sm font-medium mb-1">Giờ</label>
