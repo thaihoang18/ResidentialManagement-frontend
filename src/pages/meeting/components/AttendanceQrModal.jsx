@@ -59,13 +59,12 @@ export default function AttendanceQrModal({ open, meeting, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div
-        className="bg-white rounded-lg p-4 w-[calc(100%-2rem)] max-w-lg shadow-lg"
-        style={{ backgroundColor: "#ffffff", color: "#000000" }}
+        className="glass-panel rounded-xl border p-4 w-[calc(100%-2rem)] max-w-lg"
       >
         <div className="flex items-center justify-between mb-2">
           <div>
             <h2 className="text-lg font-semibold accent-text">QR điểm danh</h2>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               {meeting?.title || meeting?.topic || "Cuộc họp"} (ID: {meetingId})
             </div>
           </div>
@@ -74,14 +73,14 @@ export default function AttendanceQrModal({ open, meeting, onClose }) {
           </Button>
         </div>
 
-        {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
-        {loading && <div className="text-center text-gray-500 py-6">Đang tạo QR...</div>}
+        {error && <div className="text-sm text-destructive mb-2">{error}</div>}
+        {loading && <div className="text-center text-muted-foreground py-6">Đang tạo QR...</div>}
 
         {!loading && qrDataUrl && (
           <div className="flex flex-col items-center gap-3">
             <img src={qrDataUrl} alt="QR điểm danh" className="border rounded-md" />
             <div className="w-full">
-              <div className="text-sm mb-1">Link điểm danh</div>
+              <div className="text-sm mb-1 text-muted-foreground">Link điểm danh</div>
               <Input value={checkinUrl} readOnly />
             </div>
             <Button

@@ -81,7 +81,7 @@ export default function AttendanceModal({ open, meeting, onClose }) {
     [attendedCount, absentCount]
   );
 
-  const CHART_COLORS = ["#00c2a8", "#e052a2"]; // keep consistent with existing charts
+  const CHART_COLORS = ["#00c2a8", "#31b9d8"]; // keep consistent with existing charts
 
   async function save() {
     if (!meetingId) return;
@@ -117,13 +117,12 @@ export default function AttendanceModal({ open, meeting, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div
-        className="bg-white rounded-lg p-4 w-[calc(100%-2rem)] max-w-5xl shadow-lg max-h-[calc(100vh-2rem)] flex flex-col"
-        style={{ backgroundColor: "#ffffff", color: "#000000" }}
+        className="glass-panel rounded-xl border p-4 w-[calc(100%-2rem)] max-w-5xl max-h-[calc(100vh-2rem)] flex flex-col"
       >
         <div className="flex items-center justify-between mb-2">
           <div>
             <h2 className="text-lg font-semibold accent-text">Điểm danh</h2>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               {meeting?.title || meeting?.topic || "Cuộc họp"} (ID: {meetingId}) ·
               Tham dự: {attendedCount}/{rows.length}
             </div>
@@ -139,23 +138,23 @@ export default function AttendanceModal({ open, meeting, onClose }) {
           </Button>
         </div>
 
-        {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
+        {error && <div className="text-sm text-destructive mb-2">{error}</div>}
         {loading ? (
-          <div className="text-center text-gray-500 py-10">Đang tải dữ liệu...</div>
+          <div className="text-center text-muted-foreground py-10">Đang tải dữ liệu...</div>
         ) : (
           <div className="flex-1 min-h-0 flex flex-col gap-3">
-            <div className="border rounded-md p-3 bg-white">
+            <div className="glass-panel rounded-md border p-3">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-sm font-medium text-gray-800">Tỷ lệ tham dự</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    Tham dự: <span className="font-semibold text-gray-900">{attendedCount}</span>/{totalCount} ({attendedPct}%) · Vắng: <span className="font-semibold text-gray-900">{absentCount}</span>/{totalCount} ({absentPct}%)
+                  <div className="text-sm font-medium text-foreground">Tỷ lệ tham dự</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Tham dự: <span className="font-semibold text-foreground">{attendedCount}</span>/{totalCount} ({attendedPct}%) · Vắng: <span className="font-semibold text-foreground">{absentCount}</span>/{totalCount} ({absentPct}%)
                   </div>
                 </div>
 
                 <div className="w-full md:w-[260px] h-[140px]">
                   {totalCount === 0 ? (
-                    <div className="h-full flex items-center justify-center text-sm text-gray-500">
+                    <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
                       Chưa có dữ liệu
                     </div>
                   ) : (
@@ -183,7 +182,7 @@ export default function AttendanceModal({ open, meeting, onClose }) {
               </div>
             </div>
 
-            <div className="border rounded-md flex-1 min-h-0 overflow-auto">
+            <div className="glass-panel rounded-md border flex-1 min-h-0 overflow-auto">
               <Table className="min-w-[900px]">
               <TableHeader>
                 <TableRow>
@@ -196,7 +195,7 @@ export default function AttendanceModal({ open, meeting, onClose }) {
               </TableHeader>
               <TableBody>
                 {rows.map((row) => (
-                  <TableRow key={row.household_id}>
+                  <TableRow key={row.household_id} className="table-row-hover">
                     <TableCell className="font-medium">
                       {row.household_code}
                     </TableCell>
@@ -247,7 +246,7 @@ export default function AttendanceModal({ open, meeting, onClose }) {
                 ))}
                 {rows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-gray-500 py-6">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
                       Chưa có hộ khẩu nào.
                     </TableCell>
                   </TableRow>

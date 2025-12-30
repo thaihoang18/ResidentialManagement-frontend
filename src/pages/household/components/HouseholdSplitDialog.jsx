@@ -182,7 +182,7 @@ export default function HouseholdSplitDialog({
               type="button"
               variant="outline"
               size="sm"
-              className="bg-white accent-outline transition-transform hover:-translate-y-0.5"
+              className="accent-outline action-btn"
               onClick={() => {
                 if (allChecked) {
                   onSelectedIdsChange([]);
@@ -209,7 +209,7 @@ export default function HouseholdSplitDialog({
           {loadingResidents ? (
             <div className="text-sm text-muted-foreground">Đang tải danh sách nhân khẩu...</div>
           ) : (
-            <div className="rounded-md border overflow-x-auto">
+            <div className="glass-panel rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -224,7 +224,7 @@ export default function HouseholdSplitDialog({
                 <TableBody>
                   {residents.length ? (
                     residents.map((r) => (
-                      <TableRow key={r.id} className="hover:bg-teal-50">
+                      <TableRow key={r.id} className="table-row-hover">
                         <TableCell>
                           <input
                             type="checkbox"
@@ -312,12 +312,12 @@ export default function HouseholdSplitDialog({
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
 
         <DialogFooter>
-          <Button type="button" variant="outline" size="sm" className="bg-white accent-outline transition-transform hover:-translate-y-0.5" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" size="sm" className="accent-outline action-btn" onClick={() => onOpenChange(false)}>
             Hủy
           </Button>
           <Button
             type="button"
-            className="accent-btn transition-transform hover:-translate-y-0.5"
+            className="accent-btn action-btn"
             disabled={saving}
             onClick={() => {
               const nonHeadSelectedIds = selectedIds.filter(
