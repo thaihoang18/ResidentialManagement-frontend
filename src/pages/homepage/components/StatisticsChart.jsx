@@ -40,18 +40,23 @@ export default function StatisticsChart() {
   const [topHouseholds, setTopHouseholds] = useState(null);
   const [frequencyStats, setFrequencyStats] = useState(null);
   const [culturalFamilies, setCulturalFamilies] = useState(null);
+  const [temporaryStayLeaveStats, setTemporaryStayLeaveStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [attendanceLoading, setAttendanceLoading] = useState(true);
   const [topHouseholdsLoading, setTopHouseholdsLoading] = useState(true);
   const [frequencyLoading, setFrequencyLoading] = useState(true);
   const [culturalFamiliesLoading, setCulturalFamiliesLoading] = useState(true);
+  const [temporaryStayLeaveLoading, setTemporaryStayLeaveLoading] = useState(true);
   const [error, setError] = useState(null);
   const [attendanceError, setAttendanceError] = useState(null);
   const [topHouseholdsError, setTopHouseholdsError] = useState(null);
   const [frequencyError, setFrequencyError] = useState(null);
   const [culturalFamiliesError, setCulturalFamiliesError] = useState(null);
+  const [temporaryStayLeaveError, setTemporaryStayLeaveError] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(''); // 'YYYY-MM'
   const [selectedFrequencyMonth, setSelectedFrequencyMonth] = useState(''); // 'YYYY-MM'
+  const [selectedYear, setSelectedYear] = useState(''); // 'YYYY' cho biểu đồ tạm trú/tạm vắng
+  const [availableYears, setAvailableYears] = useState([]); // Danh sách các năm có dữ liệu
 
   // Derived data (must be declared before any early returns to respect Rules of Hooks)
   const genderData = useMemo(() => {
@@ -102,6 +107,7 @@ export default function StatisticsChart() {
     fetchAttendanceStatistics();
     fetchTopHouseholds();
     fetchCulturalFamilies();
+    fetchTemporaryStayLeaveStatistics();
   }, []);
 
   // Fetch frequency stats khi selectedFrequencyMonth thay đổi
@@ -110,6 +116,15 @@ export default function StatisticsChart() {
       fetchFrequencyStats(selectedFrequencyMonth);
     }
   }, [selectedFrequencyMonth]);
+
+  // Fetch lại khi năm thay đổi cho biểu đồ tạm trú/tạm vắng
+  useEffect(() => {
+    if (selectedYear !== '') {
+      fetchTemporaryStayLeaveStatistics(selectedYear);
+    } else {
+      fetchTemporaryStayLeaveStatistics();
+    }
+  }, [selectedYear]);
 
   // Set tháng gần nhất khi có dữ liệu (chỉ set một lần)
   useEffect(() => {
@@ -258,6 +273,43 @@ export default function StatisticsChart() {
       console.error('Cultural families error:', err);
     } finally {
       setCulturalFamiliesLoading(false);
+    }
+  };
+
+  const fetchTemporaryStayLeaveStatistics = async (year = null) => {
+    setTemporaryStayLeaveLoading(true);
+    setTemporaryStayLeaveError(null);
+    try {
+      const url = year 
+        ? `/api/temporary-stay-leave/statistics?year=${year}`
+        : '/api/temporary-stay-leave/statistics';
+      const res = await fetch(url);
+      const json = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(json.error || `HTTP ${res.status}: Lỗi tải dữ liệu biến động nhân khẩu`);
+      }
+      
+      if (json.success) {
+        setTemporaryStayLeaveStats(json.data);
+        // Chỉ cập nhật danh sách năm khi fetch không có year parameter (lần đầu hoặc "Tất cả")
+        if (!year && json.data && json.data.length > 0) {
+          const yearsSet = new Set();
+          json.data.forEach(stat => {
+            if (stat.year) yearsSet.add(stat.year);
+          });
+          const years = Array.from(yearsSet).sort((a, b) => b - a);
+          setAvailableYears(years);
+        }
+      } else {
+        throw new Error(json.error || 'Lỗi không xác định');
+      }
+    } catch (err) {
+      const errorMessage = err.message || 'Có lỗi xảy ra khi tải dữ liệu biến động nhân khẩu';
+      setTemporaryStayLeaveError(errorMessage);
+      console.error('TemporaryStayLeave statistics error:', err);
+    } finally {
+      setTemporaryStayLeaveLoading(false);
     }
   };
 
@@ -736,6 +788,110 @@ export default function StatisticsChart() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Biểu đồ đường - Biến động tạm trú và tạm vắng */}
+      <div className="mt-8">
+        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 rounded-xl">
+          <CardHeader className="pb-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="text-xl text-slate-800">Biến động nhân khẩu</CardTitle>
+                <p className="text-sm text-slate-600 mt-2">
+                  Theo dõi số lượng tạm trú và tạm vắng theo thời gian
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <label htmlFor="year-select" className="text-sm text-slate-600 font-medium">
+                  Năm:
+                </label>
+                <select
+                  id="year-select"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="px-3 py-1.5 border border-slate-300 rounded-md text-sm text-slate-700 bg-white hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Tất cả</option>
+                  {availableYears.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {temporaryStayLeaveError ? (
+              <div className="flex flex-col items-center justify-center h-64">
+                <p className="text-red-500 mb-4">Lỗi: {temporaryStayLeaveError}</p>
+                <button
+                  onClick={() => fetchTemporaryStayLeaveStatistics(selectedYear ? selectedYear : null)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Thử lại
+                </button>
+              </div>
+            ) : temporaryStayLeaveLoading ? (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-gray-500">Đang tải...</p>
+              </div>
+            ) : !temporaryStayLeaveStats || temporaryStayLeaveStats.length === 0 ? (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-gray-500">Chưa có dữ liệu biến động nhân khẩu</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={temporaryStayLeaveStats} margin={{ top: 5, right: 30, left: 20, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis 
+                    dataKey="monthLabel" 
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    fontSize={12}
+                    tick={{ fill: '#64748b' }}
+                    interval={0}
+                  />
+                  <YAxis 
+                    tick={{ fill: '#64748b' }}
+                    label={{ value: 'Số nhân khẩu', angle: -90, position: 'insideLeft', style: { fill: '#64748b' } }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#ffffff', border: '2px solid #00c2a8', borderRadius: '8px' }}
+                    formatter={(value, name) => {
+                      return [value, name === 'temporaryStay' ? 'Tạm trú' : 'Tạm vắng'];
+                    }}
+                    labelFormatter={(label) => `Thời gian: ${label}`}
+                  />
+                  <Legend 
+                    formatter={(value) => {
+                      if (value === 'temporaryStay') return 'Tạm trú';
+                      if (value === 'temporaryLeave') return 'Tạm vắng';
+                      return value;
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="temporaryStay" 
+                    stroke="#10b981" 
+                    strokeWidth={3}
+                    dot={{ fill: '#10b981', r: 5 }}
+                    activeDot={{ r: 7 }}
+                    name="temporaryStay"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="temporaryLeave" 
+                    stroke="#ef4444" 
+                    strokeWidth={3}
+                    dot={{ fill: '#ef4444', r: 5 }}
+                    activeDot={{ r: 7 }}
+                    name="temporaryLeave"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
