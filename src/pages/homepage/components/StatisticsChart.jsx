@@ -430,8 +430,8 @@ export default function StatisticsChart() {
   });
 
   return (
-    <div className="mx-6 flex-1 min-h-0 overflow-hidden">
-      <div className="h-full min-h-0 flex flex-col gap-4">
+    <div className="mx-6 flex-1 min-h-0 overflow-y-auto">
+      <div className="min-h-0 flex flex-col gap-4">
         <div className="shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-semibold accent-text">Phân tích dân số</h2>
