@@ -1,15 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Crown } from 'lucide-react';
 
 const mixWithWhite = (color, pct) => `color-mix(in srgb, ${color} ${pct}%, white)`;
+const mixColors = (a, aPct, b) => `color-mix(in srgb, ${a} ${aPct}%, ${b})`;
+const brighten = (color) => mixWithWhite(color, 94);
+const deepen = (color) => mixColors(color, 88, 'var(--foreground)');
 
+// General palette (used as fallback only). Each chart below has its own palette.
 const COLORS = [
-  mixWithWhite('var(--primary)', 86),
-  mixWithWhite('var(--brand-cyan)', 86),
-  mixWithWhite('var(--chart-1)', 72),
-  mixWithWhite('var(--chart-3)', 78),
-  mixWithWhite('var(--destructive)', 42),
+  'var(--primary)',
+  'var(--brand-cyan)',
+  'var(--chart-1)',
+  'var(--chart-3)',
+  mixWithWhite('var(--destructive)', 84),
+  mixColors('var(--primary)', 55, 'var(--brand-cyan)'),
+  mixColors('var(--brand-cyan)', 55, 'var(--chart-1)'),
+  mixColors('var(--primary)', 55, 'var(--chart-3)'),
 ];
 
 const RADIAN = Math.PI / 180;
@@ -62,9 +70,9 @@ export default function StatisticsChart() {
   const genderData = useMemo(() => {
     const byGender = statistics?.byGender ?? {};
     return [
-      // Nam/Nữ: vẫn xanh + hồng (hồng được tạo từ đỏ destructive + trắng)
-      { name: 'Nam', value: byGender.male || 0, color: mixWithWhite('var(--brand-cyan)', 88) },
-      { name: 'Nữ', value: byGender.female || 0, color: mixWithWhite('var(--destructive)', 38) },
+      // Nam/Nữ: xanh + hồng rõ ràng (hồng từ destructive + trắng, nhưng đậm hơn để ra "hồng hẳn")
+      { name: 'Nam', value: byGender.male || 0, color: 'var(--brand-cyan)' },
+      { name: 'Nữ', value: byGender.female || 0, color: 'var(--gender-female)' },
     ];
   }, [statistics]);
 
@@ -76,13 +84,17 @@ export default function StatisticsChart() {
     }));
   }, [statistics]);
 
+  // Độ tuổi: mỗi cột một màu khác nhau (palette mới riêng, không dùng màu vừa input cho chart khác)
   const ageBarColors = useMemo(
     () => [
-      mixWithWhite('var(--primary)', 84),
-      mixWithWhite('var(--brand-cyan)', 84),
-      mixWithWhite('var(--chart-1)', 70),
-      mixWithWhite('var(--chart-3)', 78),
-      mixWithWhite('var(--primary)', 74),
+      'var(--age-1)',
+      'var(--age-2)',
+      'var(--age-3)',
+      'var(--age-4)',
+      'var(--age-5)',
+      'var(--age-6)',
+      'var(--age-7)',
+      'var(--age-8)',
     ],
     []
   );
@@ -90,17 +102,50 @@ export default function StatisticsChart() {
   const frequencyChartData = useMemo(
     () => (frequencyStats
       ? [
-          // Tần suất tham gia: màu mè hơn chút nhưng vẫn pastel/nhẹ nhàng
-          { name: '>= 90%', value: frequencyStats.categories['>=90%'] || 0, color: mixWithWhite('var(--primary)', 88), opacity: 0.98 },
-          { name: '70-90%', value: frequencyStats.categories['70-90%'] || 0, color: mixWithWhite('var(--brand-cyan)', 86), opacity: 0.92 },
-          { name: '50-70%', value: frequencyStats.categories['50-70%'] || 0, color: mixWithWhite('var(--chart-1)', 72), opacity: 0.88 },
-          { name: '< 50%', value: frequencyStats.categories['<50%'] || 0, color: mixWithWhite('var(--destructive)', 46), opacity: 0.90 },
+          // Tần suất tham gia: dùng bộ màu khác (tránh giống nam/nữ và tránh giống "Tham gia họp")
+          { name: '>= 90%', value: frequencyStats.categories['>=90%'] || 0, color: 'var(--freq-90)', opacity: 0.96 },
+          { name: '70-90%', value: frequencyStats.categories['70-90%'] || 0, color: 'var(--freq-70-90)', opacity: 0.94 },
+          { name: '50-70%', value: frequencyStats.categories['50-70%'] || 0, color: 'var(--freq-50-70)', opacity: 0.94 },
+          { name: '< 50%', value: frequencyStats.categories['<50%'] || 0, color: 'var(--freq-lt-50)', opacity: 0.92 },
         ].filter((item) => item.value > 0)
       : []),
     [frequencyStats]
   );
 
-  const attendanceAbsentColor = useMemo(() => mixWithWhite('var(--destructive)', 55), []);
+  // Tham gia họp: giữ xanh primary + đỏ nhạt (đẹp rồi) nên không đổi tone
+  const attendanceAbsentColor = useMemo(() => mixWithWhite('var(--destructive)', 84), []);
+
+  const getCulturalHighlight = (rankIndex) => {
+    // rankIndex: 0 = #1, 1 = #2
+    if (rankIndex === 0) {
+      // Gold (amber): use theme tokens
+      return {
+        border: '1px solid rgba(var(--gold-rgb),0.40)',
+        background: 'var(--gold-metal)',
+        boxShadow: '0 10px 22px rgba(var(--gold-rgb),0.18), inset 0 1px 0 rgba(255,255,255,0.55)',
+      };
+    }
+
+    if (rankIndex === 1) {
+      // Silver: use theme tokens
+      return {
+        border: '1px solid rgba(var(--silver-rgb),0.75)',
+        background: 'var(--silver-metal)',
+        boxShadow: '0 10px 22px rgba(var(--silver-rgb),0.28), inset 0 1px 0 rgba(255,255,255,0.70)',
+      };
+    }
+
+    if (rankIndex === 2) {
+      // Bronze: use theme tokens
+      return {
+        border: '1px solid rgba(var(--bronze-rgb),0.55)',
+        background: 'var(--bronze-metal)',
+        boxShadow: '0 10px 22px rgba(var(--bronze-rgb),0.20), inset 0 1px 0 rgba(255,255,255,0.55)',
+      };
+    }
+
+    return null;
+  };
 
   useEffect(() => {
     fetchStatistics();
@@ -430,8 +475,8 @@ export default function StatisticsChart() {
   });
 
   return (
-    <div className="mx-6 flex-1 min-h-0 overflow-y-auto">
-      <div className="min-h-0 flex flex-col gap-4">
+    <div className="mx-6 flex-1 min-h-0 overflow-y-auto lg:overflow-hidden">
+      <div className="h-full min-h-0 flex flex-col gap-4">
         <div className="shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-semibold accent-text">Phân tích dân số</h2>
@@ -443,7 +488,7 @@ export default function StatisticsChart() {
 
         <div className="grid flex-1 min-h-0 gap-4 lg:gap-3 grid-cols-1 lg:grid-cols-12 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
           {/* Giới tính */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-4 lg:row-span-1">
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-7 lg:row-start-2">
             <CardHeader className="py-3 lg:py-2">
               <CardTitle className="text-base text-slate-800">Giới tính</CardTitle>
             </CardHeader>
@@ -451,6 +496,21 @@ export default function StatisticsChart() {
               <div className="h-72 lg:h-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
+                    <defs>
+                      {genderData.map((entry, index) => (
+                        <linearGradient
+                          key={`gender-grad-${index}`}
+                          id={`home-gender-grad-${index}`}
+                          x1="0"
+                          y1="0"
+                          x2="1"
+                          y2="1"
+                        >
+                          <stop offset="0%" stopColor={brighten(entry.color)} />
+                          <stop offset="100%" stopColor={deepen(entry.color)} />
+                        </linearGradient>
+                      ))}
+                    </defs>
                     <Pie
                       data={genderData}
                       cx="50%"
@@ -468,8 +528,8 @@ export default function StatisticsChart() {
                       {genderData.map((entry, index) => (
                         <Cell
                           key={`gender-${index}`}
-                          fill={entry.color || COLORS[index % COLORS.length]}
-                          fillOpacity={0.9}
+                          fill={`url(#home-gender-grad-${index})`}
+                          fillOpacity={0.95}
                         />
                       ))}
                     </Pie>
@@ -490,7 +550,7 @@ export default function StatisticsChart() {
           </Card>
 
           {/* Độ tuổi */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-4 lg:row-span-1">
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-10 lg:row-start-2">
             <CardHeader className="py-3 lg:py-2">
               <CardTitle className="text-base text-slate-800">Độ tuổi</CardTitle>
             </CardHeader>
@@ -498,6 +558,21 @@ export default function StatisticsChart() {
               <div className="h-64 lg:h-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={ageData} margin={{ top: 8, right: 10, left: 0, bottom: 28 }}>
+                    <defs>
+                      {ageBarColors.map((color, index) => (
+                        <linearGradient
+                          key={`age-grad-${index}`}
+                          id={`home-age-grad-${index}`}
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop offset="0%" stopColor={brighten(color)} />
+                          <stop offset="100%" stopColor={deepen(color)} />
+                        </linearGradient>
+                      ))}
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                     <XAxis dataKey="name" height={28} fontSize={11} tick={{ fill: 'var(--muted-foreground)' }} />
                     <YAxis tick={{ fill: 'var(--muted-foreground)' }} width={34} />
@@ -511,7 +586,10 @@ export default function StatisticsChart() {
                     />
                     <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                       {ageData.map((entry, index) => (
-                        <Cell key={`age-${entry.name}-${index}`} fill={ageBarColors[index % ageBarColors.length]} />
+                        <Cell
+                          key={`age-${entry.name}-${index}`}
+                          fill={`url(#home-age-grad-${index % ageBarColors.length})`}
+                        />
                       ))}
                     </Bar>
                   </BarChart>
@@ -521,7 +599,7 @@ export default function StatisticsChart() {
           </Card>
 
           {/* Tần suất */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-4 lg:row-span-1">
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-7 lg:row-start-1">
             <CardHeader className="py-3 lg:py-2">
               <div className="flex items-center justify-between gap-3">
                 <CardTitle className="text-base text-slate-800">Tần suất tham gia</CardTitle>
@@ -585,6 +663,21 @@ export default function StatisticsChart() {
                 <div className="h-72 lg:h-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
+                      <defs>
+                        {frequencyChartData.map((entry, index) => (
+                          <linearGradient
+                            key={`freq-grad-${index}`}
+                            id={`home-freq-grad-${index}`}
+                            x1="0"
+                            y1="0"
+                            x2="1"
+                            y2="1"
+                          >
+                            <stop offset="0%" stopColor={brighten(entry.color)} />
+                            <stop offset="100%" stopColor={deepen(entry.color)} />
+                          </linearGradient>
+                        ))}
+                      </defs>
                       <Pie
                         data={frequencyChartData}
                         cx="50%"
@@ -600,7 +693,11 @@ export default function StatisticsChart() {
                         animationDuration={450}
                       >
                         {frequencyChartData.map((entry, index) => (
-                          <Cell key={`freq-${index}`} fill={entry.color} fillOpacity={entry.opacity ?? 0.8} />
+                          <Cell
+                            key={`freq-${index}`}
+                            fill={`url(#home-freq-grad-${index})`}
+                            fillOpacity={entry.opacity ?? 0.92}
+                          />
                         ))}
                       </Pie>
                       <Tooltip
@@ -621,7 +718,7 @@ export default function StatisticsChart() {
           </Card>
 
           {/* Tham gia họp */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-8 lg:row-span-1">
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-6 lg:col-start-1 lg:row-start-1">
             <CardHeader className="py-3 lg:py-2">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -685,6 +782,16 @@ export default function StatisticsChart() {
                 <div className="h-72 lg:h-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={attendanceData} margin={{ top: 8, right: 16, left: 6, bottom: 34 }} maxBarSize={70}>
+                      <defs>
+                        <linearGradient id="home-attended-grad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={brighten('var(--primary)')} />
+                          <stop offset="100%" stopColor={deepen('var(--brand-cyan)')} />
+                        </linearGradient>
+                        <linearGradient id="home-absent-grad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={brighten(attendanceAbsentColor)} />
+                          <stop offset="100%" stopColor={deepen(attendanceAbsentColor)} />
+                        </linearGradient>
+                      </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                       <XAxis dataKey="label" height={34} fontSize={10} tick={{ fill: 'var(--muted-foreground)' }} interval="preserveStartEnd" />
                       <YAxis tick={{ fill: 'var(--muted-foreground)' }} width={34} />
@@ -718,8 +825,8 @@ export default function StatisticsChart() {
                           return value;
                         }}
                       />
-                      <Bar dataKey="attended" stackId="households" fill="var(--primary)" fillOpacity={0.88} name="attended" radius={[0, 0, 0, 0]} />
-                      <Bar dataKey="absent" stackId="households" fill={attendanceAbsentColor} fillOpacity={0.92} name="absent" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="attended" stackId="households" fill="url(#home-attended-grad)" fillOpacity={0.96} name="attended" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="absent" stackId="households" fill="url(#home-absent-grad)" fillOpacity={0.96} name="absent" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -727,8 +834,115 @@ export default function StatisticsChart() {
             </CardContent>
           </Card>
 
+          {/* Biến động nhân khẩu */}
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-6 lg:col-start-1 lg:row-start-2">
+            <CardHeader className="py-3 lg:py-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <CardTitle className="text-base text-slate-800">Biến động nhân khẩu</CardTitle>
+                  <p className="text-xs text-slate-600">
+                    Tạm trú / Tạm vắng theo thời gian
+                  </p>
+                </div>
+
+                <div className="shrink-0 flex items-center gap-2">
+                  <label htmlFor="year-select" className="text-xs text-slate-600 font-medium">
+                    Năm:
+                  </label>
+                  <select
+                    id="year-select"
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="px-2 py-1 border border-slate-300 rounded-md text-xs text-slate-700 bg-white hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                  >
+                    <option value="">Tất cả</option>
+                    {availableYears.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 min-h-0 px-4">
+              {temporaryStayLeaveError ? (
+                <div className="flex flex-col items-center justify-center h-64 lg:h-full">
+                  <p className="text-red-500">Lỗi: {temporaryStayLeaveError}</p>
+                  <button
+                    onClick={() => fetchTemporaryStayLeaveStatistics(selectedYear || null)}
+                    className="mt-2 px-4 py-2 rounded-md accent-btn action-btn"
+                  >
+                    Thử lại
+                  </button>
+                </div>
+              ) : temporaryStayLeaveLoading ? (
+                <div className="flex items-center justify-center h-64 lg:h-full">
+                  <p className="text-gray-500">Đang tải...</p>
+                </div>
+              ) : !temporaryStayLeaveStats || temporaryStayLeaveStats.length === 0 ? (
+                <div className="flex items-center justify-center h-64 lg:h-full">
+                  <p className="text-gray-500">Chưa có dữ liệu</p>
+                </div>
+              ) : (
+                <div className="h-72 lg:h-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={temporaryStayLeaveStats} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <XAxis
+                        dataKey="monthLabel"
+                        height={26}
+                        fontSize={10}
+                        tick={{ fill: 'var(--muted-foreground)' }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis tick={{ fill: 'var(--muted-foreground)' }} width={34} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--popover)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 12,
+                        }}
+                        itemStyle={{ color: 'var(--foreground)' }}
+                        labelStyle={{ color: 'var(--muted-foreground)' }}
+                        formatter={(value, name) => [value, name === 'temporaryStay' ? 'Tạm trú' : 'Tạm vắng']}
+                        labelFormatter={(label) => `Thời gian: ${label}`}
+                      />
+                      <Legend
+                        wrapperStyle={{ fontSize: 12, color: 'var(--muted-foreground)' }}
+                        formatter={(value) => {
+                          if (value === 'temporaryStay') return 'Tạm trú';
+                          if (value === 'temporaryLeave') return 'Tạm vắng';
+                          return value;
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="temporaryStay"
+                        stroke="var(--primary)"
+                        strokeWidth={2.5}
+                        dot={{ fill: 'var(--primary)', r: 3.5 }}
+                        activeDot={{ r: 5 }}
+                        name="temporaryStay"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="temporaryLeave"
+                        stroke="var(--destructive)"
+                        strokeWidth={2.5}
+                        dot={{ fill: 'var(--destructive)', r: 3.5 }}
+                        activeDot={{ r: 5 }}
+                        name="temporaryLeave"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Gia đình văn hóa */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-4 lg:row-span-1">
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-10 lg:row-start-1">
             <CardHeader className="py-3 lg:py-2">
               <CardTitle className="text-base text-slate-800">Gia đình văn hóa</CardTitle>
               <p className="text-xs text-slate-600">Tỷ lệ tham gia ≥ 90% trong năm</p>
@@ -747,7 +961,7 @@ export default function StatisticsChart() {
                   <p className="text-gray-500">Chưa có dữ liệu</p>
                 </div>
               ) : (
-                <div className="h-80 lg:h-full">
+                <div className="h-full flex flex-col min-h-0">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs text-slate-600">
                       Tổng số: <span className="font-semibold text-teal-600">{culturalFamilies.length}</span> hộ
@@ -755,15 +969,37 @@ export default function StatisticsChart() {
                     <p className="text-[11px] text-slate-500">Hiển thị 5 hộ</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-1.5 flex-1 min-h-0">
                     {[...culturalFamilies]
                       .sort((a, b) => (b.attendanceRate || 0) - (a.attendanceRate || 0))
                       .slice(0, 5)
-                      .map((household) => (
+                      .map((household, index) => {
+                        const highlight = getCulturalHighlight(index);
+                        const isTop = index === 0;
+                        const isSecond = index === 1;
+                        const isThird = index === 2;
+                        const baseClass = "relative p-2 rounded-lg border transition-all";
+                        const normalClass = "bg-white/80 border-slate-200 table-row-hover hover:bg-transparent hover:border-slate-300";
+                        const highlightClass = "border-transparent";
+                        return (
                         <div
                           key={household.householdId}
-                          className="bg-white/80 p-1.5 rounded-lg border border-slate-200 table-row-hover hover:bg-transparent hover:border-slate-300 transition-all"
+                            className={`${baseClass} ${isTop || isSecond || isThird ? highlightClass : normalClass}`}
+                          style={highlight || undefined}
                         >
+                            {isTop ? (
+                              <div
+                                className="absolute -top-2 -right-2 rounded-full p-1.5"
+                                style={{
+                                  background: 'var(--gold-gradient)',
+                                  boxShadow: '0 10px 18px rgba(var(--gold-rgb),0.22)',
+                                }}
+                                aria-label="Hạng 1"
+                                title="Hạng 1"
+                              >
+                                <Crown className="h-4 w-4" style={{ color: 'var(--primary-foreground)' }} />
+                              </div>
+                            ) : null}
                           <div className="flex items-center justify-between gap-2">
                             <div className="min-w-0">
                               <p className="text-[11px] text-slate-600 truncate">
@@ -777,121 +1013,18 @@ export default function StatisticsChart() {
                               </p>
                             </div>
                             <div className="shrink-0 text-right">
-                              <p className="font-bold text-teal-600 text-sm leading-4">{household.attendanceRate.toFixed(1)}%</p>
+                              <p className="font-bold text-slate-900 text-sm leading-4">{household.attendanceRate.toFixed(1)}%</p>
                             </div>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                   </div>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
-      </div>
-
-      {/* Biểu đồ đường - Biến động tạm trú và tạm vắng */}
-      <div className="mt-8">
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 rounded-xl">
-          <CardHeader className="pb-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-xl text-slate-800">Biến động nhân khẩu</CardTitle>
-                <p className="text-sm text-slate-600 mt-2">
-                  Theo dõi số lượng tạm trú và tạm vắng theo thời gian
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <label htmlFor="year-select" className="text-sm text-slate-600 font-medium">
-                  Năm:
-                </label>
-                <select
-                  id="year-select"
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="px-3 py-1.5 border border-slate-300 rounded-md text-sm text-slate-700 bg-white hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Tất cả</option>
-                  {availableYears.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {temporaryStayLeaveError ? (
-              <div className="flex flex-col items-center justify-center h-64">
-                <p className="text-red-500 mb-4">Lỗi: {temporaryStayLeaveError}</p>
-                <button
-                  onClick={() => fetchTemporaryStayLeaveStatistics(selectedYear ? selectedYear : null)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Thử lại
-                </button>
-              </div>
-            ) : temporaryStayLeaveLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-gray-500">Đang tải...</p>
-              </div>
-            ) : !temporaryStayLeaveStats || temporaryStayLeaveStats.length === 0 ? (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-gray-500">Chưa có dữ liệu biến động nhân khẩu</p>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={temporaryStayLeaveStats} margin={{ top: 5, right: 30, left: 20, bottom: 60 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis 
-                    dataKey="monthLabel" 
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                    fontSize={12}
-                    tick={{ fill: '#64748b' }}
-                    interval={0}
-                  />
-                  <YAxis 
-                    tick={{ fill: '#64748b' }}
-                    label={{ value: 'Số nhân khẩu', angle: -90, position: 'insideLeft', style: { fill: '#64748b' } }}
-                  />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#ffffff', border: '2px solid #00c2a8', borderRadius: '8px' }}
-                    formatter={(value, name) => {
-                      return [value, name === 'temporaryStay' ? 'Tạm trú' : 'Tạm vắng'];
-                    }}
-                    labelFormatter={(label) => `Thời gian: ${label}`}
-                  />
-                  <Legend 
-                    formatter={(value) => {
-                      if (value === 'temporaryStay') return 'Tạm trú';
-                      if (value === 'temporaryLeave') return 'Tạm vắng';
-                      return value;
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="temporaryStay" 
-                    stroke="#10b981" 
-                    strokeWidth={3}
-                    dot={{ fill: '#10b981', r: 5 }}
-                    activeDot={{ r: 7 }}
-                    name="temporaryStay"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="temporaryLeave" 
-                    stroke="#ef4444" 
-                    strokeWidth={3}
-                    dot={{ fill: '#ef4444', r: 5 }}
-                    activeDot={{ r: 7 }}
-                    name="temporaryLeave"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
