@@ -69,15 +69,6 @@ export default function DayCell({ day, isCurrentMonth, isToday, events, onDayDet
 
   return (
     <div
-<<<<<<< HEAD
-      className={`rounded-lg daycell ${
-        hasEvents
-          ? "daycell-has-events"
-          : isCurrentMonth
-            ? "bg-background/60 table-row-hover hover:bg-transparent border border-border/40 shadow-xs hover:shadow-sm transition-shadow"
-            : "bg-muted/30 text-muted-foreground table-row-hover hover:bg-transparent border border-border/20 shadow-xs"
-      } ${!isCurrentMonth ? 'outside-month' : ''}`}
-=======
       className={`rounded-lg ${isCurrentMonth ? 'bg-white shadow-sm hover:bg-teal-50' : 'bg-gray-50 text-gray-400'} daycell ${hasEvents ? 'daycell-has-events' : ''} ${!isCurrentMonth ? 'outside-month' : ''}`}
       style={
         hasEvents && isCurrentMonth
@@ -88,7 +79,6 @@ export default function DayCell({ day, isCurrentMonth, isToday, events, onDayDet
             }
           : undefined
       }
->>>>>>> 30c9c79cab412a7be7b78e956bc9f3e6acce3654
       onClick={openDetail}
       role="button"
       tabIndex={0}
