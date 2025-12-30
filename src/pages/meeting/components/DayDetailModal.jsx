@@ -54,7 +54,11 @@ export default function DayDetailModal({
 
           <div className="flex flex-col gap-3">
             {dayEvents.map((ev) => (
-              <div key={ev.id} className="glass-panel border rounded-md p-4 event-accent">
+              <div
+                key={ev.id}
+                className="glass-panel border rounded-md p-4 event-accent"
+                style={{ borderLeftWidth: 6, borderLeftColor: ev?.color || "#32f1cd" }}
+              >
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">

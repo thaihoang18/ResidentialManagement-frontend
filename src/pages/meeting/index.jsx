@@ -67,7 +67,8 @@ function Meeting() {
             location: meeting.location || "",
             description: meeting.content || meeting.description || "",
             tasks: meeting.tasks || [],
-            creator_id: meeting.creator_id
+            creator_id: meeting.creator_id,
+            color: meeting.color || "#32f1cd",
         };
     }
 
@@ -127,7 +128,8 @@ function Meeting() {
         location: "",
         description: "",
         tasks: [""],
-        creator_id: 1
+        creator_id: 1,
+        color: "#32f1cd",
     });
     const [selectedDay, setSelectedDay] = useState(null); // for day detail popup
 
@@ -346,7 +348,8 @@ function Meeting() {
             location: "",
             description: "",
             tasks: [""],
-            creator_id: 1
+            creator_id: 1,
+            color: "#32f1cd",
         });
         setShowForm(true);
     }
@@ -361,7 +364,8 @@ function Meeting() {
             location: event.location,
             description: event.description,
             tasks: Array.isArray(event.tasks) && event.tasks.length > 0 ? event.tasks : [""],
-            creator_id: event.creator_id || 1
+            creator_id: event.creator_id || 1,
+            color: event.color || "#32f1cd",
         });
         setShowForm(true);
     }
@@ -380,7 +384,8 @@ function Meeting() {
             tasks,
             location: form.location,
             time: `${form.date}T${form.time}:00`,
-            creator_id: form.creator_id
+            creator_id: form.creator_id,
+            color: form.color || "#32f1cd",
         };
         try {
             let res, updatedMeeting;
@@ -437,7 +442,8 @@ function Meeting() {
                     location: "",
                     description: "",
                     tasks: [""],
-                    creator_id: 1
+                    creator_id: 1,
+                    color: "#32f1cd",
                 });
             }
         } catch (e) {
