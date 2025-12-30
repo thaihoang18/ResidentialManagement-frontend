@@ -53,6 +53,50 @@ export default function StatisticsChart() {
   const [selectedMonth, setSelectedMonth] = useState(''); // 'YYYY-MM'
   const [selectedFrequencyMonth, setSelectedFrequencyMonth] = useState(''); // 'YYYY-MM'
 
+  // Derived data (must be declared before any early returns to respect Rules of Hooks)
+  const genderData = useMemo(() => {
+    const byGender = statistics?.byGender ?? {};
+    return [
+      // Nam/Nữ: vẫn xanh + hồng (hồng được tạo từ đỏ destructive + trắng)
+      { name: 'Nam', value: byGender.male || 0, color: mixWithWhite('var(--brand-cyan)', 88) },
+      { name: 'Nữ', value: byGender.female || 0, color: mixWithWhite('var(--destructive)', 38) },
+    ];
+  }, [statistics]);
+
+  const ageData = useMemo(() => {
+    const byAge = statistics?.byAge ?? {};
+    return Object.entries(byAge).map(([name, value]) => ({
+      name,
+      value: value || 0,
+    }));
+  }, [statistics]);
+
+  const ageBarColors = useMemo(
+    () => [
+      mixWithWhite('var(--primary)', 84),
+      mixWithWhite('var(--brand-cyan)', 84),
+      mixWithWhite('var(--chart-1)', 70),
+      mixWithWhite('var(--chart-3)', 78),
+      mixWithWhite('var(--primary)', 74),
+    ],
+    []
+  );
+
+  const frequencyChartData = useMemo(
+    () => (frequencyStats
+      ? [
+          // Tần suất tham gia: màu mè hơn chút nhưng vẫn pastel/nhẹ nhàng
+          { name: '>= 90%', value: frequencyStats.categories['>=90%'] || 0, color: mixWithWhite('var(--primary)', 88), opacity: 0.98 },
+          { name: '70-90%', value: frequencyStats.categories['70-90%'] || 0, color: mixWithWhite('var(--brand-cyan)', 86), opacity: 0.92 },
+          { name: '50-70%', value: frequencyStats.categories['50-70%'] || 0, color: mixWithWhite('var(--chart-1)', 72), opacity: 0.88 },
+          { name: '< 50%', value: frequencyStats.categories['<50%'] || 0, color: mixWithWhite('var(--destructive)', 46), opacity: 0.90 },
+        ].filter((item) => item.value > 0)
+      : []),
+    [frequencyStats]
+  );
+
+  const attendanceAbsentColor = useMemo(() => mixWithWhite('var(--destructive)', 55), []);
+
   useEffect(() => {
     fetchStatistics();
     fetchAttendanceStatistics();
@@ -276,35 +320,6 @@ export default function StatisticsChart() {
     return null;
   }
 
-  const genderData = useMemo(
-    () => [
-      // Nam/Nữ: vẫn xanh + hồng (hồng được tạo từ đỏ destructive + trắng)
-      { name: 'Nam', value: statistics.byGender.male || 0, color: mixWithWhite('var(--brand-cyan)', 88) },
-      { name: 'Nữ', value: statistics.byGender.female || 0, color: mixWithWhite('var(--destructive)', 38) },
-    ],
-    [statistics]
-  );
-
-  // Chuẩn bị dữ liệu cho biểu đồ độ tuổi
-  const ageData = useMemo(
-    () => Object.entries(statistics.byAge || {}).map(([name, value]) => ({
-      name,
-      value: value || 0,
-    })),
-    [statistics]
-  );
-
-  const ageBarColors = useMemo(
-    () => [
-      mixWithWhite('var(--primary)', 84),
-      mixWithWhite('var(--brand-cyan)', 84),
-      mixWithWhite('var(--chart-1)', 70),
-      mixWithWhite('var(--chart-3)', 78),
-      mixWithWhite('var(--primary)', 74),
-    ],
-    []
-  );
-
   // Chuẩn bị dữ liệu cho biểu đồ đường tham gia họp
   const attendanceDataRaw = attendanceStats?.meetings || [];
   
@@ -323,24 +338,6 @@ export default function StatisticsChart() {
   
   const availableMonths = getAvailableMonths();
 
-  // Chuẩn bị dữ liệu cho biểu đồ hình quạt tần suất tham gia
-  const frequencyChartData = useMemo(
-    () => (frequencyStats
-      ? [
-          // Tần suất tham gia: màu mè hơn chút nhưng vẫn pastel/nhẹ nhàng
-          { name: '>= 90%', value: frequencyStats.categories['>=90%'] || 0, color: mixWithWhite('var(--primary)', 88), opacity: 0.98 },
-          { name: '70-90%', value: frequencyStats.categories['70-90%'] || 0, color: mixWithWhite('var(--brand-cyan)', 86), opacity: 0.92 },
-          { name: '50-70%', value: frequencyStats.categories['50-70%'] || 0, color: mixWithWhite('var(--chart-1)', 72), opacity: 0.88 },
-          { name: '< 50%', value: frequencyStats.categories['<50%'] || 0, color: mixWithWhite('var(--destructive)', 46), opacity: 0.90 },
-        ].filter((item) => item.value > 0)
-      : []),
-    [frequencyStats]
-  );
-
-  const attendanceAbsentColor = useMemo(
-    () => mixWithWhite('var(--destructive)', 55),
-    []
-  );
   
   // Filter dữ liệu theo tháng đã chọn
   const filterAttendanceData = () => {
