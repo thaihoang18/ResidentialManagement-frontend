@@ -1,4 +1,5 @@
 import React from 'react'
+import { Home } from "lucide-react"
 
 function Header() {
   return (
@@ -8,7 +9,10 @@ function Header() {
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-white rounded-full translate-x-1/2 translate-y-1/2"></div>
       </div>
       <div className="text-center relative z-10 px-4">
-        <h1 className="text-4xl md:text-5xl lg:text-4xl font-bold tracking-tight drop-shadow-sm accent-text">HỆ THỐNG QUẢN LÝ DÂN CƯ</h1>
+        <div className="flex items-center justify-center gap-3">
+          <Home className="size-8 text-[color:var(--primary-dark)]" />
+          <h1 className="text-4xl md:text-5xl lg:text-4xl font-bold tracking-tight drop-shadow-sm accent-text">HỆ THỐNG QUẢN LÝ DÂN CƯ</h1>
+        </div>
         <p className="mt-2 lg:mt-1 text-lg lg:text-base text-muted-foreground">PHƯỜNG LA KHÊ</p>
       </div>
     </header>

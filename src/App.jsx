@@ -6,6 +6,7 @@ import Meeting from "./pages/meeting";
 import Household from "./pages/household";
 import Resident from "./pages/resident";
 import TemporaryStayLeave from "./pages/temporaryStayLeave";
+import UserPage from "./pages/user";
 import SideBar from "./components/SideBar";
 import Login from "./pages/auth";
 import CheckinPage from "./pages/checkin";
@@ -60,6 +61,14 @@ function App() {
               <Route
                 path="/temporary"
                 element={<ProtectedRoute><TemporaryStayLeave /></ProtectedRoute>}
+              />
+              <Route
+                path="/user"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <UserPage />
+                  </ProtectedRoute>
+                }
               />
               <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
             </Routes>

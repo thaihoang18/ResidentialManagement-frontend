@@ -10,6 +10,20 @@ function formatDate(date) {
     return date.toISOString().slice(0, 10);
 }
 
+function normalizeHexColor(input, fallback = "#32f1cd") {
+    if (input === undefined || input === null) return fallback;
+    const raw = String(input).trim();
+    if (!raw) return fallback;
+
+    // already a hex with '#'
+    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw)) return raw;
+
+    // hex without '#'
+    if (/^([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw)) return `#${raw}`;
+
+    return fallback;
+}
+
 function generateCalendar(year, month) {
     // month: 0-11
     const first = new Date(year, month, 1);
@@ -68,7 +82,7 @@ function Meeting() {
             description: meeting.content || meeting.description || "",
             tasks: meeting.tasks || [],
             creator_id: meeting.creator_id,
-            color: meeting.color || "#32f1cd",
+            color: normalizeHexColor(meeting.color, "#32f1cd"),
         };
     }
 
@@ -365,7 +379,7 @@ function Meeting() {
             description: event.description,
             tasks: Array.isArray(event.tasks) && event.tasks.length > 0 ? event.tasks : [""],
             creator_id: event.creator_id || 1,
-            color: event.color || "#32f1cd",
+            color: normalizeHexColor(event.color, "#32f1cd"),
         });
         setShowForm(true);
     }
@@ -385,7 +399,7 @@ function Meeting() {
             location: form.location,
             time: `${form.date}T${form.time}:00`,
             creator_id: form.creator_id,
-            color: form.color || "#32f1cd",
+            color: normalizeHexColor(form.color, "#32f1cd"),
         };
         try {
             let res, updatedMeeting;

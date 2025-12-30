@@ -31,6 +31,10 @@ export function DataTable({
   enableFilters = false,
   filters = [],
   rowClassName = "table-row-hover",
+  enableRowSelection = false,
+  getRowId,
+  onSelectionChange,
+  resetRowSelectionKey,
   enablePagination = false,
   pageSize = 10,
 }) {
@@ -38,20 +42,60 @@ export function DataTable({
   const [sorting, setSorting] = React.useState([]);
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [columnFilters, setColumnFilters] = React.useState([]);
+  const [rowSelection, setRowSelection] = React.useState({});
+
+  const selectionColumn = React.useMemo(() => {
+    if (!enableRowSelection) return null;
+
+    return {
+      id: "__select__",
+      header: ({ table }) => (
+        <input
+          type="checkbox"
+          className="h-4 w-4 accent-[color:var(--primary-dark)]"
+          checked={table.getIsAllPageRowsSelected()}
+          onChange={table.getToggleAllPageRowsSelectedHandler()}
+          aria-label="Chọn tất cả"
+        />
+      ),
+      cell: ({ row }) => (
+        <input
+          type="checkbox"
+          className="h-4 w-4 accent-[color:var(--primary-dark)]"
+          checked={row.getIsSelected()}
+          onChange={row.getToggleSelectedHandler()}
+          aria-label="Chọn dòng"
+        />
+      ),
+      enableSorting: false,
+      enableColumnFilter: false,
+      enableGlobalFilter: false,
+      size: 44,
+    };
+  }, [enableRowSelection]);
+
+  const computedColumns = React.useMemo(() => {
+    if (!enableRowSelection || !selectionColumn) return columns;
+    return [selectionColumn, ...columns];
+  }, [columns, enableRowSelection, selectionColumn]);
 
   const table = useReactTable({
     data,
-    columns,
+    columns: computedColumns,
     state: {
       sorting,
       globalFilter,
       columnFilters,
+      ...(enableRowSelection ? { rowSelection } : {}),
       ...(enablePagination ? { pagination } : {}),
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: enableRowSelection ? setRowSelection : undefined,
     onPaginationChange: enablePagination ? setPagination : undefined,
+    ...(typeof getRowId === "function" ? { getRowId } : {}),
+    ...(enableRowSelection ? { enableRowSelection: true } : {}),
     globalFilterFn: (row, columnId, filterValue) => {
       const v = row.getValue(columnId);
       const q = String(filterValue ?? "")
@@ -67,6 +111,19 @@ export function DataTable({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
+
+  React.useEffect(() => {
+    if (!enableRowSelection) return;
+    setRowSelection({});
+  }, [enableRowSelection, resetRowSelectionKey]);
+
+  React.useEffect(() => {
+    if (!enableRowSelection) return;
+    if (typeof onSelectionChange !== "function") return;
+
+    const selected = table.getSelectedRowModel().flatRows.map((r) => r.original);
+    onSelectionChange(selected);
+  }, [enableRowSelection, onSelectionChange, rowSelection, table]);
 
   const [pageInput, setPageInput] = React.useState("");
   React.useEffect(() => {
@@ -114,6 +171,15 @@ export function DataTable({
                     .map((v) => String(v))
                     .sort((a, b) => a.localeCompare(b, "vi"));
 
+              const normalizedOptions = options.map((opt) => {
+                if (opt && typeof opt === "object") {
+                  const value = String(opt.value ?? "");
+                  return { value, label: String(opt.label ?? value) };
+                }
+                const value = String(opt);
+                return { value, label: value };
+              });
+
               return (
                 <div key={f.id} className="space-y-1 min-w-[220px]">
                   <label className="text-xs font-medium text-muted-foreground">{f.label}</label>
@@ -122,9 +188,9 @@ export function DataTable({
                     onChange={(e) => col.setFilterValue(e.target.value)}
                     className="border-input bg-background/60 text-foreground h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/20 focus-visible:ring-[2px]">
                     <option value="">Tất cả</option>
-                    {options.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
+                    {normalizedOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
                       </option>
                     ))}
                   </select>
@@ -202,7 +268,7 @@ export function DataTable({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={computedColumns.length} className="h-24 text-center">
                 Không có dữ liệu.
               </TableCell>
             </TableRow>

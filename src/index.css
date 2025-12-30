@@ -676,7 +676,8 @@ body::after {
 .event-accent {
   /* subtle left accent stripe */
   background: linear-gradient(90deg, rgba(var(--primary-rgb),0.01), rgba(255,255,255,0));
-  border-left: 2px solid rgba(var(--primary-rgb),0.7);
+  /* Allow per-event override: set inline style "--event-accent" to a HEX color */
+  border-left: 6px solid var(--event-accent, rgba(var(--primary-rgb),0.7)) !important;
 }
 
 /* NEW: highlight for day cells that have events
@@ -692,8 +693,13 @@ body::after {
     rgba(var(--meeting-color3-rgb, var(--meeting-color2-rgb, var(--meeting-color-rgb, var(--primary-rgb)))), 0.10) 100%
   );
   color: inherit;
+  /* pop from the background: subtle white outline + soft glow */
+  border: 1px solid rgba(255, 255, 255, 0.72);
   border-radius: 0.5rem; /* match DayCell rounded */
-  box-shadow: 0 6px 18px rgba(var(--meeting-color-rgb, var(--primary-rgb)), 0.07);
+  box-shadow:
+    0 10px 26px rgba(var(--meeting-color-rgb, var(--primary-rgb)), 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.42) inset,
+    0 0 18px rgba(255, 255, 255, 0.22);
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
   /* ensure text inside uses white where applicable */
@@ -703,7 +709,10 @@ body::after {
 .daycell-has-events:hover {
   transform: translateY(-1px);
   filter: brightness(1.02);
-  box-shadow: 0 8px 22px rgba(var(--meeting-color-rgb, var(--primary-rgb)), 0.09);
+  box-shadow:
+    0 12px 30px rgba(var(--meeting-color-rgb, var(--primary-rgb)), 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.52) inset,
+    0 0 22px rgba(255, 255, 255, 0.26);
 }
 
 /* non-clickable daycells remain default pointer */
@@ -722,7 +731,10 @@ body::after {
 .daycell-has-events:focus,
 .daycell-has-events:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 6px rgba(var(--meeting-color-rgb, var(--primary-rgb)), 0.10);
+  box-shadow:
+    0 0 0 6px rgba(var(--meeting-color-rgb, var(--primary-rgb)), 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.62) inset,
+    0 0 18px rgba(255, 255, 255, 0.22);
 }
 
 /* small round badge bottom-right showing number of events */
