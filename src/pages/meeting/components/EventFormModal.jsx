@@ -59,6 +59,25 @@ export default function EventFormModal({ show, form, setForm, onClose, onSubmit 
             <label className="block text-sm font-medium mb-1">Địa điểm</label>
             <Input value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
           </div>
+
+          <div>
+            <label className="block text-sm mb-1">Màu hiển thị</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={form.color || "#32f1cd"}
+                onChange={(e) => setForm({ ...form, color: e.target.value })}
+                className="h-10 w-14 border rounded-md px-1 py-1 shadow-sm"
+                aria-label="Chọn màu hiển thị cuộc họp"
+              />
+              <input
+                value={form.color || "#32f1cd"}
+                onChange={(e) => setForm({ ...form, color: e.target.value })}
+                className="flex-1 border rounded-md px-3 py-2 shadow-sm"
+                placeholder="#32f1cd"
+              />
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium mb-1">Mô tả</label>
             <textarea
