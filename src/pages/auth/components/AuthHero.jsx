@@ -11,7 +11,7 @@ export default function AuthHero() {
           </svg>
         </div>
         <div>
-          <div className="text-lg font-semibold">Quản lý chung cư</div>
+          <div className="text-lg font-semibold">Quản lý khu dân cư</div>
           <div className="text-sm opacity-95">Phường La Khê</div>
         </div>
       </div>

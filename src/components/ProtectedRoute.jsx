@@ -1,8 +1,23 @@
 import React from "react";
-import { Navigate } from "react-router";
-import { isAuthenticated } from "@/lib/auth";
+import { Navigate, useLocation } from "react-router";
+import { getUserRole, isAuthenticated } from "@/lib/auth";
 
-export default function ProtectedRoute({ children }) {
-  if (isAuthenticated()) return children;
-  return <Navigate to="/login" replace />;
+const OFFICER_ALLOWED_PATHS = new Set(["/", "/meeting"]);
+
+export default function ProtectedRoute({ children, allowedRoles }) {
+  const location = useLocation();
+
+  if (!isAuthenticated()) return <Navigate to="/login" replace />;
+
+  const role = getUserRole();
+
+  if (Array.isArray(allowedRoles) && allowedRoles.length > 0) {
+    if (!allowedRoles.includes(role)) return <Navigate to="/" replace />;
+  }
+
+  if (role === "officer" && !OFFICER_ALLOWED_PATHS.has(location.pathname)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
 }
