@@ -130,6 +130,8 @@ export default function TemporaryStayLeaveTable({ data = [], onEdit, onDelete, l
       columns={columns}
       data={data}
       loading={loading}
+      enablePagination
+      pageSize={20}
       enableSearch
       searchPlaceholder="Tìm theo tên nhân khẩu, CCCD/CMND..."
       enableFilters
