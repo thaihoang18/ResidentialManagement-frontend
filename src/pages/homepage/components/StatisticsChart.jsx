@@ -180,7 +180,11 @@ export default function StatisticsChart() {
 
   // Set tháng gần nhất khi có dữ liệu (chỉ set một lần)
   useEffect(() => {
-    if (attendanceStats?.meetings && attendanceStats.meetings.length > 0 && selectedMonth === '') {
+    if (
+      attendanceStats?.meetings &&
+      attendanceStats.meetings.length > 0 &&
+      (selectedMonth === '' || selectedFrequencyMonth === '')
+    ) {
       const meetings = attendanceStats.meetings;
       const monthsSet = new Set();
       meetings.forEach(meeting => {
@@ -192,12 +196,16 @@ export default function StatisticsChart() {
       });
       const availableMonths = Array.from(monthsSet).sort().reverse();
       if (availableMonths.length > 0) {
-        const latestMonth = availableMonths[0];
-        setSelectedMonth(latestMonth); // Set tháng gần nhất
-        setSelectedFrequencyMonth(latestMonth); // Set tháng gần nhất cho frequency chart
+        const preferredDefaultMonth = '2025-12';
+        const initialMonth = availableMonths.includes(preferredDefaultMonth)
+          ? preferredDefaultMonth
+          : availableMonths[0];
+
+        if (selectedMonth === '') setSelectedMonth(initialMonth);
+        if (selectedFrequencyMonth === '') setSelectedFrequencyMonth(initialMonth);
       }
     }
-  }, [attendanceStats]);
+  }, [attendanceStats, selectedMonth, selectedFrequencyMonth]);
 
   const fetchStatistics = async () => {
     setLoading(true);
