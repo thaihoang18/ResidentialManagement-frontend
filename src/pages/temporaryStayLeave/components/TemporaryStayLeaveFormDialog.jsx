@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/ui/date-field";
 import { toLocalYmd } from "@/lib/date";
 
 const toDateInputValue = (value) => toLocalYmd(value);
@@ -334,26 +335,27 @@ export default function TemporaryStayLeaveFormDialog({
                 <label className="text-sm font-medium">
                   Từ ngày <span className="text-destructive">*</span>
                 </label>
-                <Input
-                  type="date"
+                <DateField
                   name="start_date"
+                  required
+                  placeholder="Chọn ngày bắt đầu"
                   value={toDateInputValue(form.start_date)}
-                  onChange={(e) => {
+                  onChange={(next) => {
                     setSubmitError("");
-                    setForm((prev) => ({ ...prev, start_date: e.target.value }));
+                    setForm((prev) => ({ ...prev, start_date: next }));
                   }}
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Đến ngày (nếu có)</label>
-                <Input
-                  type="date"
+                <DateField
                   name="end_date"
+                  placeholder="Chọn ngày kết thúc"
                   value={toDateInputValue(form.end_date)}
-                  onChange={(e) => {
+                  onChange={(next) => {
                     setSubmitError("");
-                    setForm((prev) => ({ ...prev, end_date: e.target.value }));
+                    setForm((prev) => ({ ...prev, end_date: next }));
                   }}
                 />
               </div>
