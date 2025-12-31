@@ -68,7 +68,7 @@ function SideBar() {
     },
     {
       path: "/meeting",
-      label: "Lịch họp",
+      label: "Sự kiện",
       Icon: Calendar,
       roles: ["leader", "deputy", "officer"],
     },

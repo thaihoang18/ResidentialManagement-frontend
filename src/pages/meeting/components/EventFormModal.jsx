@@ -2,12 +2,42 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
-import { XIcon } from "lucide-react";
+import { Plus, Trash2, XIcon } from "lucide-react";
 
 export default function EventFormModal({ show, form, setForm, onClose, onSubmit }) {
   const CLOSE_MS = 320;
   const [mounted, setMounted] = React.useState(!!show);
   const [uiState, setUiState] = React.useState("closed");
+
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const clampInt = (value, min, max) => {
+    const n = Number.parseInt(String(value), 10);
+    if (Number.isNaN(n)) return undefined;
+    return Math.min(max, Math.max(min, n));
+  };
+  const parseHHmm = (value) => {
+    const str = String(value || "");
+    const m = str.match(/^\s*(\d{1,2})\s*:\s*(\d{1,2})\s*$/);
+    if (!m) return { hour: "", minute: "" };
+    const h = clampInt(m[1], 0, 23);
+    const mi = clampInt(m[2], 0, 59);
+    return {
+      hour: h == null ? "" : pad2(h),
+      minute: mi == null ? "" : pad2(mi),
+    };
+  };
+  const onlyDigits2 = (next) => String(next || "").replace(/\D+/g, "").slice(0, 2);
+
+  const [hour, setHour] = React.useState("");
+  const [minute, setMinute] = React.useState("");
+
+  React.useEffect(() => {
+    if (!mounted) return;
+    const parsed = parseHHmm(form.time);
+    setHour(parsed.hour);
+    setMinute(parsed.minute);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, show]);
 
   React.useEffect(() => {
     if (show) {
@@ -79,9 +109,53 @@ export default function EventFormModal({ show, form, setForm, onClose, onSubmit 
                 onChange={(next) => setForm({ ...form, date: next })}
               />
             </div>
-            <div className="w-36">
+            <div className="w-40">
               <label className="block text-sm font-medium mb-1">Giờ</label>
-              <Input required type="time" value={form.time} onChange={e => setForm({...form, time: e.target.value})} />
+              <div className="flex items-center gap-2">
+                <Input
+                  required
+                  inputMode="numeric"
+                  placeholder="HH"
+                  value={hour}
+                  onChange={(e) => {
+                    const nextHour = onlyDigits2(e.target.value);
+                    setHour(nextHour);
+                    const h = clampInt(nextHour, 0, 23);
+                    const m = clampInt(minute, 0, 59);
+                    if (h != null && m != null) setForm({ ...form, time: `${pad2(h)}:${pad2(m)}` });
+                  }}
+                  onBlur={() => {
+                    const h = clampInt(hour, 0, 23);
+                    const m = clampInt(minute, 0, 59);
+                    const hh = h == null ? "" : pad2(h);
+                    setHour(hh);
+                    if (h != null && m != null) setForm({ ...form, time: `${pad2(h)}:${pad2(m)}` });
+                  }}
+                  className="text-center"
+                />
+                <span className="text-muted-foreground">:</span>
+                <Input
+                  required
+                  inputMode="numeric"
+                  placeholder="mm"
+                  value={minute}
+                  onChange={(e) => {
+                    const nextMinute = onlyDigits2(e.target.value);
+                    setMinute(nextMinute);
+                    const h = clampInt(hour, 0, 23);
+                    const m = clampInt(nextMinute, 0, 59);
+                    if (h != null && m != null) setForm({ ...form, time: `${pad2(h)}:${pad2(m)}` });
+                  }}
+                  onBlur={() => {
+                    const h = clampInt(hour, 0, 23);
+                    const m = clampInt(minute, 0, 59);
+                    const mm = m == null ? "" : pad2(m);
+                    setMinute(mm);
+                    if (h != null && m != null) setForm({ ...form, time: `${pad2(h)}:${pad2(m)}` });
+                  }}
+                  className="text-center"
+                />
+              </div>
             </div>
           </div>
           <div>
@@ -90,7 +164,7 @@ export default function EventFormModal({ show, form, setForm, onClose, onSubmit 
           </div>
 
           <div>
-            <label className="block text-sm mb-1">Màu hiển thị</label>
+            <label className="block text-sm font-medium mb-1">Màu hiển thị</label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
@@ -118,14 +192,17 @@ export default function EventFormModal({ show, form, setForm, onClose, onSubmit 
 
           <div>
             <div className="flex items-center justify-between gap-3 mb-1">
-              <label className="block text-sm">Công việc</label>
+              <label className="block text-sm font-medium">Công việc</label>
               <Button
                 type="button"
                 variant="outline"
+                size="icon"
                 className="accent-outline action-btn"
                 onClick={addTask}
+                aria-label="Thêm công việc"
+                title="Thêm công việc"
               >
-                Thêm công việc
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
 
@@ -141,11 +218,13 @@ export default function EventFormModal({ show, form, setForm, onClose, onSubmit 
                   <Button
                     type="button"
                     variant="outline"
+                    size="icon"
                     className="accent-outline action-btn"
                     onClick={() => removeTask(idx)}
                     aria-label={`Xóa công việc ${idx + 1}`}
+                    title={`Xóa công việc ${idx + 1}`}
                   >
-                    Xóa
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}

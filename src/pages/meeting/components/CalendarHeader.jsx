@@ -9,9 +9,9 @@ export default function CalendarHeader({ monthName, year, onPrev, onNext, onToda
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-3">
                         <Calendar className="size-7 text-[color:var(--primary-dark)]" />
-                        <h1 className="text-4xl font-bold tracking-tight drop-shadow-sm accent-text">Lịch họp</h1>
+                        <h1 className="text-4xl font-bold tracking-tight drop-shadow-sm accent-text">Sự kiện</h1>
                     </div>
-                    <p className="text-base text-muted-foreground">Xem và quản lý các cuộc họp của cộng đồng</p>
+                    <p className="text-base text-muted-foreground">Xem và quản lý các sự kiện của cộng đồng</p>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap justify-end">
                     <Button variant="outline" size="sm" onClick={onToday} className="accent-outline">Hôm nay</Button>
@@ -32,7 +32,7 @@ export default function CalendarHeader({ monthName, year, onPrev, onNext, onToda
                         className="action-btn flex gap-2 items-center px-5 py-2.5 rounded-xl font-semibold text-base accent-btn"
                     >
                         <PlusIcon className="w-5 h-5" />
-                        <span>Tạo cuộc họp</span>
+                        <span>Tạo sự kiện</span>
                     </Button>
                 </div>
             </div>
