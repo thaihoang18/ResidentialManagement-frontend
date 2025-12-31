@@ -202,12 +202,38 @@
   }
 }
 
+@keyframes rm-month-enter-next {
+  from {
+    opacity: 0;
+    transform: translate3d(26px, 0, 0) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes rm-month-enter-prev {
+  from {
+    opacity: 0;
+    transform: translate3d(-26px, 0, 0) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
 .rm-page-transition {
   animation: rm-page-enter 460ms var(--ease-out-smooth);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .rm-page-transition {
+    animation: none !important;
+  }
+
+  .rm-calendar-transition {
     animation: none !important;
   }
 
@@ -227,6 +253,24 @@
   .rm-modal-panel {
     transition: none !important;
   }
+}
+
+/* Meeting calendar month switch transition */
+.rm-calendar-transition-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.rm-calendar-transition {
+  will-change: transform, opacity;
+}
+
+.rm-calendar-transition[data-dir="next"] {
+  animation: rm-month-enter-next 1200ms var(--ease-out-smooth);
+}
+
+.rm-calendar-transition[data-dir="prev"] {
+  animation: rm-month-enter-prev 1200ms var(--ease-out-smooth);
 }
 
 /* Custom modals (non-Radix) used in Meeting page */
@@ -266,18 +310,30 @@ body {
   background-color: var(--background);
 }
 
-/* Global aurora background: mixes primary + cyan + magenta subtly */
+/* Global background: soft glow “spots” using only primary + cyan on white */
 body {
   position: relative;
   isolation: isolate;
   background-color: var(--background);
   background:
-    radial-gradient(980px 560px at 10% 0%, rgba(var(--brand-magenta-rgb), 0.22) 0%, rgba(255,255,255,0) 62%),
-    radial-gradient(980px 560px at 92% 8%, rgba(var(--brand-cyan-rgb), 0.10) 0%, rgba(255,255,255,0) 62%),
-    radial-gradient(980px 560px at 88% 112%, rgba(var(--brand-magenta-rgb), 0.16) 0%, rgba(255,255,255,0) 62%),
-    radial-gradient(980px 560px at 55% 110%, rgba(var(--primary-rgb), 0.10) 0%, rgba(255,255,255,0) 62%),
-    radial-gradient(1100px 680px at 50% 35%, rgba(var(--primary-rgb), 0.04) 0%, rgba(255,255,255,0) 60%),
-    linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,1) 58%);
+    /* Big glows */
+    radial-gradient(980px 620px at 12% 6%, rgba(var(--brand-cyan-rgb), 0.34) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(980px 620px at 90% 10%, rgba(var(--primary-rgb), 0.32) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(920px 640px at 78% 108%, rgba(var(--brand-cyan-rgb), 0.22) 0%, rgba(255,255,255,0) 66%),
+    radial-gradient(1020px 700px at 22% 112%, rgba(var(--primary-rgb), 0.22) 0%, rgba(255,255,255,0) 68%),
+
+    /* Mid glows */
+    radial-gradient(680px 560px at 78% 36%, rgba(var(--brand-cyan-rgb), 0.22) 0%, rgba(255,255,255,0) 60%),
+    radial-gradient(640px 560px at 28% 44%, rgba(var(--primary-rgb), 0.20) 0%, rgba(255,255,255,0) 60%),
+
+    /* Hotspots (small but soft) */
+    radial-gradient(420px 360px at 64% 22%, rgba(var(--brand-cyan-rgb), 0.26) 0%, rgba(255,255,255,0) 58%),
+    radial-gradient(420px 360px at 40% 28%, rgba(var(--primary-rgb), 0.24) 0%, rgba(255,255,255,0) 58%),
+    radial-gradient(520px 420px at 50% 62%, rgba(var(--brand-cyan-rgb), 0.14) 0%, rgba(255,255,255,0) 62%),
+
+    /* Gentle fill */
+    radial-gradient(1300px 900px at 50% 40%, rgba(var(--brand-cyan-rgb), 0.10) 0%, rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, rgba(255,255,255,0.68) 0%, rgba(255,255,255,1) 58%);
   background-attachment: fixed;
 }
 
@@ -287,55 +343,65 @@ body > * {
   z-index: 1;
 }
 
-/* Background layers are intentionally static (no motion) */
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: -60%;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    conic-gradient(
-      from 220deg at 50% 50%,
-      rgba(var(--primary-rgb), 1) 0%,
-      rgba(var(--brand-cyan-rgb), 1) 22%,
-      rgba(var(--brand-magenta-rgb), 1) 55%,
-      rgba(var(--brand-magenta-rgb), 1) 78%,
-      rgba(var(--primary-rgb), 1) 100%
-    ),
-    radial-gradient(closest-side at 18% 18%, rgba(var(--brand-cyan-rgb), 0.55) 0%, rgba(255,255,255,0) 62%),
-    radial-gradient(closest-side at 82% 24%, rgba(var(--brand-magenta-rgb), 0.98) 0%, rgba(255,255,255,0) 62%),
-    radial-gradient(closest-side at 32% 86%, rgba(var(--brand-magenta-rgb), 0.55) 0%, rgba(255,255,255,0) 66%),
-    radial-gradient(closest-side at 55% 86%, rgba(var(--primary-rgb), 0.55) 0%, rgba(255,255,255,0) 64%);
-  background-size: 260% 260%;
-  background-position: 35% 50%;
-  opacity: 0.090;
-  filter: blur(110px) saturate(1.16);
-  transform: translate3d(0, 0, 0);
-}
-
+/* Animated glow overlay (smooth motion, primary + cyan only).
+   Implemented via transform animations (cheap) instead of animating gradients. */
+body::before,
 body::after {
   content: "";
   position: fixed;
-  inset: -65%;
-  z-index: 0;
+  inset: -14vh -10vw;
   pointer-events: none;
-  background:
-    conic-gradient(
-      from 120deg at 60% 42%,
-      rgba(var(--brand-magenta-rgb), 1) 0%,
-      rgba(var(--primary-rgb), 1) 40%,
-      rgba(var(--brand-cyan-rgb), 0.90) 62%,
-      rgba(var(--brand-magenta-rgb), 1) 100%
-    ),
-    radial-gradient(closest-side at 70% 20%, rgba(var(--primary-rgb), 0.40) 0%, rgba(255,255,255,0) 64%),
-    radial-gradient(closest-side at 28% 78%, rgba(var(--brand-magenta-rgb), 0.78) 0%, rgba(255,255,255,0) 66%);
-  background-size: 320% 320%;
-  background-position: 65% 45%;
-  opacity: 0.070;
-  filter: blur(145px) saturate(1.14);
+  z-index: 0;
+  will-change: transform, opacity;
   transform: translate3d(0, 0, 0);
+  transform-origin: center;
+  backface-visibility: hidden;
+}
+
+body::before {
+  background:
+    radial-gradient(780px 520px at 18% 14%, rgba(var(--brand-cyan-rgb), 0.22) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(820px 560px at 86% 18%, rgba(var(--primary-rgb), 0.20) 0%, rgba(255,255,255,0) 62%),
+    radial-gradient(720px 560px at 70% 72%, rgba(var(--brand-cyan-rgb), 0.14) 0%, rgba(255,255,255,0) 66%),
+    radial-gradient(820px 620px at 26% 80%, rgba(var(--primary-rgb), 0.14) 0%, rgba(255,255,255,0) 68%);
+  filter: blur(12px) saturate(1.12);
+  opacity: 0.98;
+  animation: rm-glow-drift-1 10s ease-in-out infinite alternate;
+}
+
+body::after {
+  background:
+    radial-gradient(520px 420px at 62% 28%, rgba(var(--brand-cyan-rgb), 0.16) 0%, rgba(255,255,255,0) 58%),
+    radial-gradient(520px 420px at 40% 34%, rgba(var(--primary-rgb), 0.14) 0%, rgba(255,255,255,0) 58%),
+    radial-gradient(980px 680px at 52% 56%, rgba(var(--brand-cyan-rgb), 0.08) 0%, rgba(255,255,255,0) 60%);
+  filter: blur(15px) saturate(1.10);
+  opacity: 0.86;
+  animation: rm-glow-drift-2 14s ease-in-out infinite alternate;
+}
+
+@keyframes rm-glow-drift-1 {
+  from {
+    transform: translate3d(-10%, -7%, 0);
+  }
+  to {
+    transform: translate3d(11%, 10%, 0);
+  }
+}
+
+@keyframes rm-glow-drift-2 {
+  from {
+    transform: translate3d(12%, -9%, 0);
+  }
+  to {
+    transform: translate3d(-11%, 12%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  body::after {
+    animation: none !important;
+  }
 }
 
 /* Grid rows fixed to calendar cell height so all cells in all months stay same size */
@@ -504,7 +570,7 @@ body::after {
   inset: -2px;
   border-radius: inherit;
   background:
-    radial-gradient(120% 85% at 10% 15%, rgba(var(--brand-magenta-rgb), 0.14) 0%, rgba(255,255,255,0) 60%),
+    radial-gradient(120% 85% at 10% 15%, rgba(var(--brand-cyan-rgb), 0.12) 0%, rgba(255,255,255,0) 60%),
     radial-gradient(120% 85% at 90% 0%, rgba(var(--brand-cyan-rgb), 0.14) 0%, rgba(255,255,255,0) 62%),
     radial-gradient(100% 90% at 55% 110%, rgba(var(--primary-rgb), 0.10) 0%, rgba(255,255,255,0) 62%);
   filter: blur(20px);
@@ -556,7 +622,7 @@ body::after {
     ),
     radial-gradient(
       140% 80% at 90% 10%,
-      rgba(var(--brand-magenta-rgb), 0.05) 0%,
+      rgba(var(--brand-cyan-rgb), 0.05) 0%,
       rgba(255, 255, 255, 0) 58%
     ),
     radial-gradient(
@@ -979,6 +1045,35 @@ button {
 .action-btn.destructive:hover {
   transform: translateY(-0.6px);
   box-shadow: 0 10px 30px rgba(239,68,68,0.12);
+}
+
+/* Global: make Trash/Lock icons red (Lucide uses currentColor) */
+svg.lucide-trash,
+svg.lucide-trash-2,
+svg.lucide-lock,
+svg.lucide-lock-keyhole,
+svg.lucide-lock-open {
+  color: var(--destructive);
+}
+
+/* Exceptions: when the surrounding UI sets white text (e.g. destructive buttons),
+   icons should follow current text color instead of forced red. */
+[data-slot="button"].bg-destructive svg.lucide-trash,
+[data-slot="button"].bg-destructive svg.lucide-trash-2,
+[data-slot="button"].bg-destructive svg.lucide-lock,
+[data-slot="button"].bg-destructive svg.lucide-lock-keyhole,
+[data-slot="button"].bg-destructive svg.lucide-lock-open,
+.bg-destructive svg.lucide-trash,
+.bg-destructive svg.lucide-trash-2,
+.bg-destructive svg.lucide-lock,
+.bg-destructive svg.lucide-lock-keyhole,
+.bg-destructive svg.lucide-lock-open,
+.text-white svg.lucide-trash,
+.text-white svg.lucide-trash-2,
+.text-white svg.lucide-lock,
+.text-white svg.lucide-lock-keyhole,
+.text-white svg.lucide-lock-open {
+  color: inherit !important;
 }
 
 @layer base {

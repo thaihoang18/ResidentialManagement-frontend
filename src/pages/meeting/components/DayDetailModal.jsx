@@ -214,10 +214,11 @@ export default function DayDetailModal({
                           aria-label="Xóa"
                           title="Xóa"
                           size="icon"
-                          className="accent-btn action-btn"
+                          variant="destructive"
+                          className="action-btn !bg-destructive !text-white hover:!bg-destructive/90"
                           onClick={() => onDelete?.(ev)}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4 !text-white" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent sideOffset={6}>Xóa</TooltipContent>

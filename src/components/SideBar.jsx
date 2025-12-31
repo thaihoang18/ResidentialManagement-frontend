@@ -16,6 +16,9 @@ import {
 import { User, Users, Home, MapPin, Calendar, LogOut } from "lucide-react"
 import { getUserRole, logout } from "@/lib/auth"
 import { useNavigate } from "react-router"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { runAppTransition } from "@/lib/transition"
 
 function SideBar() {
   const location = useLocation()
@@ -24,9 +27,18 @@ function SideBar() {
   const isActive = (path) => location.pathname === path
   const navigate = useNavigate()
 
-  const handleLogout = () => {
-    logout()
-    navigate("/login", { replace: true })
+  const [logoutOpen, setLogoutOpen] = React.useState(false)
+
+  const handleLogoutClick = () => {
+    setLogoutOpen(true)
+  }
+
+  const confirmLogout = async () => {
+    setLogoutOpen(false)
+    await runAppTransition(() => {
+      navigate("/login", { replace: true })
+      requestAnimationFrame(() => logout())
+    })
   }
 
   const navItems = [
@@ -197,7 +209,7 @@ function SideBar() {
             <SidebarMenu className="gap-2">
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  onClick={handleLogout}
+                  onClick={handleLogoutClick}
                   variant="outline"
                   size="lg"
                   className="sidebar-nav-btn rounded-xl px-4 gap-3 text-[15px] font-medium !bg-transparent !hover:bg-transparent"
@@ -214,6 +226,30 @@ function SideBar() {
           </div>
         </SidebarFooter>
       </Sidebar>
+
+      <Dialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+        <DialogContent className="rm-popup-panel !bg-[var(--popover)]">
+          <DialogHeader>
+            <DialogTitle>Bạn có chắc muốn đăng xuất?</DialogTitle>
+            <DialogDescription>
+              Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng hệ thống.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLogoutOpen(false)}>
+              Hủy
+            </Button>
+            <Button
+              variant="destructive"
+              className="!bg-destructive !text-white hover:!bg-destructive/90"
+              onClick={confirmLogout}
+            >
+              Đăng xuất
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   )
 }

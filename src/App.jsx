@@ -13,6 +13,7 @@ import CheckinPage from "./pages/checkin";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { isAuthenticated } from "./lib/auth";
 import { useEffect, useState } from "react";
+import AppTransitionOverlay from "./components/AppTransitionOverlay";
 
 function SidebarGate() {
   const location = useLocation();
@@ -25,6 +26,7 @@ function SidebarGate() {
   }, []);
 
   if (!authed) return null;
+  if (location.pathname.startsWith("/login")) return null;
   if (location.pathname.startsWith("/checkin")) return null;
   return <SideBar />;
 }
@@ -80,6 +82,7 @@ function App() {
   return (
     <>
       <BrowserRouter>
+        <AppTransitionOverlay />
         <div className="min-h-screen flex">
           <SidebarGate />
           <AppRoutes />
