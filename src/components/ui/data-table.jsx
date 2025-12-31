@@ -79,6 +79,20 @@ export function DataTable({
     return [selectionColumn, ...columns];
   }, [columns, enableRowSelection, selectionColumn]);
 
+  const hasSortableIdColumn = React.useMemo(() => {
+    return (computedColumns || []).some((c) => {
+      const colId = c?.id ?? c?.accessorKey;
+      if (colId !== "id") return false;
+      return c?.enableSorting !== false;
+    });
+  }, [computedColumns]);
+
+  // Default: sort by id ascending for all tables that have an `id` column.
+  React.useEffect(() => {
+    if (!hasSortableIdColumn) return;
+    setSorting((prev) => (Array.isArray(prev) && prev.length ? prev : [{ id: "id", desc: false }]));
+  }, [hasSortableIdColumn]);
+
   const table = useReactTable({
     data,
     columns: computedColumns,
