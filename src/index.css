@@ -179,6 +179,85 @@
      - max 180px
   */
   --calendar-cell-height: clamp(100px, calc((100vh - 260px) / 6), 180px);
+
+  /* Motion (smooth like Windows 11): keep subtle + professional */
+  --ease-out-smooth: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-smooth: cubic-bezier(0.4, 0, 1, 1);
+  --transition-smooth: background-color, border-color, color, box-shadow, transform, opacity, filter;
+  --transition-bounce: transform;
+
+  /* Popup surfaces: slightly more opaque (white-ish) */
+  --popup-glass-bg: rgba(255,255,255,0.96);
+  --popup-glass-highlight-opacity: 0.05;
+}
+
+@keyframes rm-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rm-page-transition {
+  animation: rm-page-enter 460ms var(--ease-out-smooth);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rm-page-transition {
+    animation: none !important;
+  }
+
+  [data-slot="dialog-content"],
+  [data-slot="dialog-overlay"],
+  [data-slot="sheet-content"],
+  [data-slot="sheet-overlay"],
+  [data-slot="popover-content"] {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .sidebar-nav-btn,
+  .header-home-link,
+  .table-row-hover,
+  .rm-modal-overlay,
+  .rm-modal-panel {
+    transition: none !important;
+  }
+}
+
+/* Custom modals (non-Radix) used in Meeting page */
+.rm-modal-overlay {
+  opacity: 0;
+  transition: opacity 320ms var(--ease-out-smooth);
+}
+
+.rm-modal-overlay[data-state="open"] {
+  opacity: 1;
+}
+
+.rm-modal-panel {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0) scale(0.985);
+  transition:
+    transform 560ms var(--ease-out-smooth),
+    opacity 360ms var(--ease-out-smooth);
+  will-change: transform, opacity;
+}
+
+.rm-modal-panel[data-state="open"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* Opaque popup panel surface (white-ish) */
+.rm-popup-panel {
+  background: var(--popup-glass-bg) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow: var(--glass-shadow);
 }
 
 html,
@@ -454,7 +533,7 @@ body::after {
 
 /* Sidebar header Home link: no hover lift, only a soft highlight */
 .header-home-link {
-  transition: background 160ms ease, box-shadow 160ms ease;
+  transition: background 200ms var(--ease-out-smooth), box-shadow 200ms var(--ease-out-smooth);
 }
 
 .header-home-link:hover {
@@ -501,7 +580,34 @@ body::after {
 .sidebar-nav-btn {
   color: var(--primary-dark);
   border-color: rgba(var(--primary-rgb), 0.06) !important;
-  transition: background 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition: background 220ms var(--ease-out-smooth), box-shadow 220ms var(--ease-out-smooth), border-color 220ms var(--ease-out-smooth), color 220ms var(--ease-out-smooth);
+}
+
+/* Sliding active highlight (single element that moves between items) */
+.rm-sidebar-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: 0.75rem;
+  background: var(--primary-gradient);
+  box-shadow: var(--primary-shadow), inset 2px 0 0 rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(var(--primary-rgb), 0.18);
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 320ms var(--ease-out-smooth),
+    width 320ms var(--ease-out-smooth),
+    height 320ms var(--ease-out-smooth),
+    opacity 160ms var(--ease-out-smooth);
+  will-change: transform, width, height, opacity;
+}
+
+/* Ensure menu items render above the indicator */
+.sidebar-art [data-sidebar="menu-item"],
+.sidebar-art [data-sidebar="menu-button"] {
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar-nav-btn:hover {
@@ -517,10 +623,10 @@ body::after {
 
 /* SidebarMenuButton renders data-active="true" when isActive */
 .sidebar-nav-btn[data-active="true"] {
-  background: var(--primary-gradient) !important;
+  background: transparent !important;
   color: var(--primary-foreground) !important;
   border-color: rgba(var(--primary-rgb), 0.18) !important;
-  box-shadow: var(--primary-shadow), inset 2px 0 0 rgba(255, 255, 255, 0.22);
+  box-shadow: none;
 }
 
 .sidebar-nav-btn[data-active="true"]:hover {
@@ -576,6 +682,13 @@ body::after {
   z-index: 0;
 }
 
+/* Popups should look less transparent than cards/tables */
+[data-slot="dialog-content"]::before,
+[data-slot="sheet-content"]::before,
+[data-slot="popover-content"]::before {
+  background: var(--glass-surface), var(--popup-glass-bg);
+}
+
 [data-slot="card"]::after,
 [data-slot="dialog-content"]::after,
 [data-slot="sheet-content"]::after,
@@ -592,6 +705,12 @@ body::after {
   z-index: 1;
 }
 
+[data-slot="dialog-content"]::after,
+[data-slot="sheet-content"]::after,
+[data-slot="popover-content"]::after {
+  opacity: var(--popup-glass-highlight-opacity);
+}
+
 /* Safety: keep Radix dialogs centered even if other global styles interfere */
 [data-slot="dialog-content"] {
   position: fixed !important;
@@ -601,6 +720,24 @@ body::after {
   bottom: auto !important;
   --tw-translate-x: -50% !important;
   --tw-translate-y: -50% !important;
+}
+
+/* Help the browser render popup transitions smoothly */
+[data-slot="dialog-content"],
+[data-slot="dialog-overlay"],
+[data-slot="sheet-content"],
+[data-slot="sheet-overlay"],
+[data-slot="popover-content"] {
+  will-change: transform, opacity;
+}
+
+/* Table row hover (used by DataTable via rowClassName) */
+.table-row-hover {
+  transition: background-color 200ms var(--ease-out-smooth), color 200ms var(--ease-out-smooth), border-color 200ms var(--ease-out-smooth);
+}
+
+.table-row-hover:not([data-state="selected"]):hover {
+  background-color: rgba(var(--primary-rgb), 0.03);
 }
 
 /*

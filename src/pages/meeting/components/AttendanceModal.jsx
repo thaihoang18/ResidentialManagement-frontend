@@ -112,12 +112,42 @@ export default function AttendanceModal({ open, meeting, onClose }) {
     }
   }
 
-  if (!open) return null;
+  const CLOSE_MS = 320;
+  const [mounted, setMounted] = useState(!!open);
+  const [uiState, setUiState] = useState("closed");
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      setUiState("closed");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setUiState("open"));
+      });
+      return;
+    }
+
+    if (!mounted) return;
+    setUiState("closed");
+    const t = window.setTimeout(() => setMounted(false), CLOSE_MS);
+    return () => window.clearTimeout(t);
+  }, [open, mounted]);
+
+  if (!mounted) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div
+      data-state={uiState}
+      className="rm-modal-overlay fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          setUiState("closed");
+          onClose?.();
+        }
+      }}
+    >
       <div
-        className="glass-panel rounded-xl border p-4 w-[calc(100%-2rem)] max-w-5xl max-h-[calc(100vh-2rem)] flex flex-col"
+        data-state={uiState}
+        className="rm-modal-panel rm-popup-panel rounded-xl border p-4 w-[calc(100%-2rem)] max-w-5xl max-h-[calc(100vh-2rem)] flex flex-col"
       >
         <div className="flex items-center justify-between mb-2">
           <div>
@@ -131,7 +161,7 @@ export default function AttendanceModal({ open, meeting, onClose }) {
             aria-label="Đóng"
             variant="ghost"
             size="icon"
-            onClick={onClose}
+            onClick={() => { setUiState("closed"); onClose?.(); }}
             className="accent-text close-btn"
           >
             <XIcon className="w-5 h-5" />

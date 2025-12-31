@@ -5,7 +5,27 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { XIcon } from "lucide-react";
 
 export default function EventFormModal({ show, form, setForm, onClose, onSubmit }) {
-  if (!show) return null;
+  const CLOSE_MS = 320;
+  const [mounted, setMounted] = React.useState(!!show);
+  const [uiState, setUiState] = React.useState("closed");
+
+  React.useEffect(() => {
+    if (show) {
+      setMounted(true);
+      setUiState("closed");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setUiState("open"));
+      });
+      return;
+    }
+
+    if (!mounted) return;
+    setUiState("closed");
+    const t = window.setTimeout(() => setMounted(false), CLOSE_MS);
+    return () => window.clearTimeout(t);
+  }, [show, mounted]);
+
+  if (!mounted) return null;
   const tasks = Array.isArray(form.tasks) ? form.tasks : [""];
 
   function setTasks(next) {
@@ -28,11 +48,20 @@ export default function EventFormModal({ show, form, setForm, onClose, onSubmit 
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="glass-panel rounded-xl border p-4 w-full max-w-lg">
+    <div
+      data-state={uiState}
+      className="rm-modal-overlay fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          setUiState("closed");
+          onClose?.();
+        }
+      }}
+    >
+      <div data-state={uiState} className="rm-modal-panel rm-popup-panel rounded-xl border p-4 w-full max-w-lg">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold accent-text">Tạo cuộc họp</h2>
-          <Button aria-label="Đóng" variant="ghost" size="icon" onClick={onClose} className="accent-text close-btn"><XIcon className="w-5 h-5"/></Button>
+          <Button aria-label="Đóng" variant="ghost" size="icon" onClick={() => { setUiState("closed"); onClose?.(); }} className="accent-text close-btn"><XIcon className="w-5 h-5"/></Button>
         </div>
         <form onSubmit={onSubmit} className="space-y-3">
           <div>
