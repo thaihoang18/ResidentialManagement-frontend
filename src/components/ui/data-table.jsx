@@ -12,6 +12,13 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, X } from "lucide-react";
 
 import {
@@ -197,17 +204,22 @@ export function DataTable({
               return (
                 <div key={f.id} className="space-y-1 min-w-[220px]">
                   <label className="text-xs font-medium text-muted-foreground">{f.label}</label>
-                  <select
-                    value={String(value)}
-                    onChange={(e) => col.setFilterValue(e.target.value)}
-                    className="border-input bg-background/60 text-foreground h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/20 focus-visible:ring-[2px]">
-                    <option value="">Tất cả</option>
-                    {normalizedOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    value={String(value || "__all__")}
+                    onValueChange={(v) => col.setFilterValue(v === "__all__" ? "" : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tất cả" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all__">Tất cả</SelectItem>
+                      {normalizedOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               );
             }

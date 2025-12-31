@@ -3,6 +3,13 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 function generatePassword(length = 12) {
   const charset = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
@@ -80,29 +87,34 @@ export default function UserFormDialog({
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Vai trò</label>
-            <select
-              value={form?.role || ""}
-              onChange={(e) => onChange?.({ ...form, role: e.target.value })}
-              className="border-input bg-background/60 text-foreground h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/20 focus-visible:ring-[2px]"
-            >
-              {roleList.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+            <Select value={form?.role || undefined} onValueChange={(v) => onChange?.({ ...form, role: v })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn vai trò" />
+              </SelectTrigger>
+              <SelectContent>
+                {roleList.map((r) => (
+                  <SelectItem key={r.value} value={r.value}>
+                    {r.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Trạng thái</label>
-            <select
-              value={String(!!form?.status)}
-              onChange={(e) => onChange?.({ ...form, status: e.target.value === "true" })}
-              className="border-input bg-background/60 text-foreground h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/20 focus-visible:ring-[2px]"
+            <Select
+              value={form?.status ? "true" : "false"}
+              onValueChange={(v) => onChange?.({ ...form, status: v === "true" })}
             >
-              <option value="true">Hoạt động</option>
-              <option value="false">Đã khóa</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">Hoạt động</SelectItem>
+                <SelectItem value="false">Đã khóa</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {isCreate ? (

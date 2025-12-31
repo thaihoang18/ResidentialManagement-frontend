@@ -8,6 +8,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toLocalYmd } from "@/lib/date";
 
 const toDateInputValue = (value) => toLocalYmd(value);
@@ -224,9 +231,6 @@ export default function TemporaryStayLeaveFormDialog({
     }
   };
 
-  const selectClassName =
-    "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
@@ -239,15 +243,18 @@ export default function TemporaryStayLeaveFormDialog({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Loại giấy</label>
-                <select
-                  name="paper_type"
+                <Select
                   value={form.paper_type}
-                  onChange={handleChange}
-                  className={selectClassName}
+                  onValueChange={(v) => handleChange({ target: { name: "paper_type", value: v } })}
                 >
-                  <option value="TemporaryLeave">Tạm vắng</option>
-                  <option value="TemporaryStay">Tạm trú</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TemporaryLeave">Tạm vắng</SelectItem>
+                    <SelectItem value="TemporaryStay">Tạm trú</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
