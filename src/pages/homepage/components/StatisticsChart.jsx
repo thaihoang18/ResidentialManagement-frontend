@@ -483,19 +483,32 @@ export default function StatisticsChart() {
             <p className="text-sm text-muted-foreground">
               Tổng cư dân: <span className="font-semibold text-teal-600">{statistics.total || 0}</span>
             </p>
-          </div>
         </div>
+      </div>
 
         <div className="grid flex-1 min-h-0 gap-4 lg:gap-3 grid-cols-1 lg:grid-cols-12 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
           {/* Giới tính */}
           <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-7 lg:row-start-2">
             <CardHeader className="py-3 lg:py-2">
               <CardTitle className="text-base text-slate-800">Giới tính</CardTitle>
-            </CardHeader>
+              <div className="flex flex-wrap items-center gap-3 mt-2">
+                {genderData.map((entry, index) => (
+                  <div key={`gender-legend-${index}`} className="flex items-center gap-1.5">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{
+                        background: `linear-gradient(135deg, ${brighten(entry.color)}, ${deepen(entry.color)})`,
+                      }}
+                    />
+                    <span className="text-xs text-slate-600">{entry.name}</span>
+                  </div>
+                ))}
+              </div>
+          </CardHeader>
             <CardContent className="flex-1 min-h-0 px-4">
               <div className="h-72 lg:h-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
+              <PieChart>
                     <defs>
                       {genderData.map((entry, index) => (
                         <linearGradient
@@ -511,28 +524,28 @@ export default function StatisticsChart() {
                         </linearGradient>
                       ))}
                     </defs>
-                    <Pie
-                      data={genderData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
+                <Pie
+                  data={genderData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
                       label={renderPiePercentLabel}
                       outerRadius="98%"
                       paddingAngle={2}
                       stroke="var(--background)"
                       strokeWidth={2}
-                      dataKey="value"
-                      animationBegin={0}
+                  dataKey="value"
+                  animationBegin={0}
                       animationDuration={450}
-                    >
-                      {genderData.map((entry, index) => (
+                >
+                  {genderData.map((entry, index) => (
                         <Cell
                           key={`gender-${index}`}
                           fill={`url(#home-gender-grad-${index})`}
                           fillOpacity={0.95}
                         />
-                      ))}
-                    </Pie>
+                  ))}
+                </Pie>
                     <Tooltip
                       formatter={(value) => `${value} người`}
                       contentStyle={{
@@ -543,9 +556,9 @@ export default function StatisticsChart() {
                       itemStyle={{ color: 'var(--foreground)' }}
                       labelStyle={{ color: 'var(--muted-foreground)' }}
                     />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              </PieChart>
+            </ResponsiveContainer>
+                </div>
             </CardContent>
           </Card>
 
@@ -594,9 +607,9 @@ export default function StatisticsChart() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
           {/* Tần suất */}
           <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-7 lg:row-start-1">
@@ -645,7 +658,23 @@ export default function StatisticsChart() {
                   Họp: <span className="font-semibold text-teal-600">{frequencyStats.totalMeetings || 0}</span>
                 </p>
               )}
-            </CardHeader>
+              {frequencyChartData.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  {frequencyChartData.map((entry, index) => (
+                    <div key={`freq-legend-${index}`} className="flex items-center gap-1.5">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{
+                          background: `linear-gradient(135deg, ${brighten(entry.color)}, ${deepen(entry.color)})`,
+                          opacity: entry.opacity ?? 0.92,
+                        }}
+                      />
+                      <span className="text-xs text-slate-600">{entry.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+          </CardHeader>
             <CardContent className="flex-1 min-h-0 px-4">
               {frequencyError ? (
                 <div className="flex items-center justify-center h-64 lg:h-full">
@@ -795,7 +824,7 @@ export default function StatisticsChart() {
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                       <XAxis dataKey="label" height={34} fontSize={10} tick={{ fill: 'var(--muted-foreground)' }} interval="preserveStartEnd" />
                       <YAxis tick={{ fill: 'var(--muted-foreground)' }} width={34} />
-                      <Tooltip
+                <Tooltip 
                         contentStyle={{
                           backgroundColor: 'var(--popover)',
                           border: '1px solid var(--border)',
@@ -827,8 +856,8 @@ export default function StatisticsChart() {
                       />
                       <Bar dataKey="attended" stackId="households" fill="url(#home-attended-grad)" fillOpacity={0.96} name="attended" radius={[0, 0, 0, 0]} />
                       <Bar dataKey="absent" stackId="households" fill="url(#home-absent-grad)" fillOpacity={0.96} name="absent" radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+              </BarChart>
+            </ResponsiveContainer>
                 </div>
               )}
             </CardContent>
@@ -1020,10 +1049,10 @@ export default function StatisticsChart() {
                         );
                       })}
                   </div>
-                </div>
+            </div>
               )}
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
         </div>
       </div>
     </div>
