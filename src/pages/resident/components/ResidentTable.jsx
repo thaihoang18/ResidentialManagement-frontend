@@ -2,10 +2,10 @@ import React, { useMemo, useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Edit2, History, Trash2 } from "lucide-react";
+import { Edit2, History, Trash2, Eye } from "lucide-react";
 import ResidentHistoryDialog from "./ResidentHistoryDialog";
 
-export default function ResidentTable({ data = [], onEdit, onDelete, loading }) {
+export default function ResidentTable({ data = [], onEdit, onDelete, onView, loading }) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyResident, setHistoryResident] = useState(null);
 
@@ -20,6 +20,7 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
     const map = {
       Permanent: "Thường trú",
       TemporaryStay: "Tạm trú",
+      TemporaryLeave: "Tạm vắng",
       Dead: "Đã chết",
     };
     return map[s] || s || "-";
@@ -77,6 +78,22 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
               <Button
                 variant="ghost"
                 size="icon-sm"
+                onClick={() => onView && onView(row.original)}
+                aria-label="Xem"
+                className="accent-text"
+              >
+                <Eye />
+                <span className="sr-only">Xem</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>Xem</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => onEdit(row.original)}
                 aria-label="Sửa"
                 className="accent-text"
@@ -106,7 +123,7 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
         </div>
       )},
     ],
-    [onEdit, onDelete]
+    [onEdit, onDelete, onView]
   );
 
   return (
