@@ -8,12 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toLocalYmd } from "@/lib/date";
 
-const toDateInputValue = (value) => {
-  if (!value) return "";
-  const s = String(value);
-  return s.length >= 10 ? s.substring(0, 10) : "";
-};
+const toDateInputValue = (value) => toLocalYmd(value);
 
 export default function TemporaryStayLeaveFormDialog({
   open,
