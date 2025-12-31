@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/ui/date-field";
 import { toLocalYmd } from "@/lib/date";
 
 export default function ResidentFormDialog({ open, onClose, onSaved, initialData }) {
@@ -19,10 +20,6 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
     relation_to_head: "",
     gender: "",
     status: "",
-  });
-  const [displayDates, setDisplayDates] = useState({
-    date_of_birth: "",
-    id_issue_date: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,35 +41,6 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
     status: "",
   };
 
-  const pad = (n) => String(n).padStart(2, "0");
-  const formatDateForDisplay = (value) => {
-    if (!value) return "";
-    const d = new Date(value);
-    if (isNaN(d)) return "";
-    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-  };
-
-  const parseDisplayToISO = (str) => {
-    if (!str) return "";
-    const dmY = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/;
-    const ymd = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/;
-    let m;
-    if ((m = str.match(dmY))) {
-      const d = pad(m[1]);
-      const mo = pad(m[2]);
-      const y = m[3];
-      return `${y}-${mo}-${d}`;
-    }
-    if ((m = str.match(ymd))) {
-      return `${m[1]}-${m[2]}-${m[3]}`;
-    }
-    const parsed = new Date(str);
-    if (!isNaN(parsed)) {
-      return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`;
-    }
-    return "";
-  };
-
   useEffect(() => {
     if (initialData) {
       // Normalize date fields to yyyy-mm-dd in local time to avoid off-by-one when backend returns ISO timestamps.
@@ -81,30 +49,14 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
         date_of_birth: toLocalYmd(initialData.date_of_birth),
         id_issue_date: toLocalYmd(initialData.id_issue_date),
       });
-      setDisplayDates({
-        date_of_birth: initialData ? formatDateForDisplay(initialData.date_of_birth) : "",
-        id_issue_date: initialData ? formatDateForDisplay(initialData.id_issue_date) : "",
-      });
     } else {
       setForm({ ...emptyForm });
-      setDisplayDates({ date_of_birth: "", id_issue_date: "" });
     }
   }, [initialData, open]);
 
   const handleChange = (e) => {
     setSubmitError("");
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleDateChange = (name, value) => {
-    setSubmitError("");
-    setDisplayDates((s) => ({ ...s, [name]: value }));
-  };
-
-  const handleDateBlur = (name, value) => {
-    const iso = parseDisplayToISO(value);
-    setForm((s) => ({ ...s, [name]: iso }));
-    setDisplayDates((s) => ({ ...s, [name]: formatDateForDisplay(iso) }));
   };
 
   const handleSubmit = async (e) => {
@@ -172,15 +124,15 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Ngày sinh</label>
-                <Input
+                <DateField
                   name="date_of_birth"
-                  type="text"
-                  placeholder="DD/MM/YYYY"
-                  value={displayDates.date_of_birth}
-                  onChange={(e) => handleDateChange("date_of_birth", e.target.value)}
-                  onBlur={(e) => handleDateBlur("date_of_birth", e.target.value)}
+                  placeholder="Chọn ngày sinh"
+                  value={form.date_of_birth || ""}
+                  onChange={(next) => {
+                    setSubmitError("");
+                    setForm((s) => ({ ...s, date_of_birth: next }));
+                  }}
                 />
-                <p className="text-xs text-muted-foreground">Nhập theo định dạng dd/mm/yyyy.</p>
               </div>
 
               <div className="space-y-2">
@@ -221,15 +173,15 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Ngày cấp</label>
-                <Input
+                <DateField
                   name="id_issue_date"
-                  type="text"
-                  placeholder="DD/MM/YYYY"
-                  value={displayDates.id_issue_date}
-                  onChange={(e) => handleDateChange("id_issue_date", e.target.value)}
-                  onBlur={(e) => handleDateBlur("id_issue_date", e.target.value)}
+                  placeholder="Chọn ngày cấp"
+                  value={form.id_issue_date || ""}
+                  onChange={(next) => {
+                    setSubmitError("");
+                    setForm((s) => ({ ...s, id_issue_date: next }));
+                  }}
                 />
-                <p className="text-xs text-muted-foreground">Nhập theo định dạng dd/mm/yyyy.</p>
               </div>
 
               <div className="space-y-2 md:col-span-2">
