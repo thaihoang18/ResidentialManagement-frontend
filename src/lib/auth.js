@@ -1,11 +1,16 @@
 const API_BASE = import.meta.env.VITE_API_URL || "";
 
-export function getRoleFromEmail(email) {
-  const normalized = (email || "").toLowerCase();
-  if (normalized.includes("leader") || normalized.includes("deputy")) return "admin";
+function getAccountRoleFromEmail(email) {
+  const normalized = String(email || "").toLowerCase();
+  if (normalized.includes("leader")) return "leader";
+  if (normalized.includes("deputy")) return "deputy";
   if (normalized.includes("officer")) return "officer";
-  // Default to the more restrictive role when unknown
   return "officer";
+}
+
+export function getRoleFromEmail(email) {
+  // Backward-compatible alias
+  return getAccountRoleFromEmail(email);
 }
 
 export async function login(email, password) {
@@ -18,8 +23,17 @@ export async function login(email, password) {
   const data = await res.json().catch(() => ({}));
 
   if (res.ok && data.success) {
-    const role = getRoleFromEmail(email);
-    localStorage.setItem("rm_user", JSON.stringify({ email, role }));
+    const backendUser = data?.data && typeof data.data === "object" ? data.data : null;
+    const accountRole = String(backendUser?.role ?? "").trim() || getAccountRoleFromEmail(backendUser?.email ?? email);
+    const payload = {
+      email: backendUser?.email ?? email,
+      role: accountRole,
+      accountRole,
+      full_name: backendUser?.full_name,
+      id: backendUser?.id,
+      status: backendUser?.status,
+    };
+    localStorage.setItem("rm_user", JSON.stringify(payload));
     try {
       window.dispatchEvent(new Event('rm_auth_changed'))
     } catch (e) {}
@@ -44,8 +58,25 @@ export function getUser() {
   try {
     const user = JSON.parse(localStorage.getItem("rm_user"));
     if (!user) return null;
-    if (!user.role) return { ...user, role: getRoleFromEmail(user.email) };
-    return user;
+    // role can be legacy (admin/officer) or new (leader/deputy/officer)
+    const roleRaw = user.role ? String(user.role) : "";
+    const accountRoleRaw = user.accountRole ? String(user.accountRole) : "";
+    const email = user.email;
+
+    let role = roleRaw || accountRoleRaw || getAccountRoleFromEmail(email);
+    // Legacy mapping: keep deputy (least-privileged of admins)
+    if (role === "admin") role = "deputy";
+    if (role !== "leader" && role !== "deputy" && role !== "officer") {
+      role = getAccountRoleFromEmail(email);
+    }
+
+    const normalized = {
+      ...user,
+      email,
+      role,
+      accountRole: accountRoleRaw || role,
+    };
+    return normalized;
   } catch (e) {
     return null;
   }

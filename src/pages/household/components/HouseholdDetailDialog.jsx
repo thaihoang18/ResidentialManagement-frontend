@@ -131,7 +131,7 @@ export default function HouseholdDetailDialog({ open, onOpenChange, household })
         </DialogHeader>
 
         <div className="flex-1 min-h-0 space-y-4 overflow-y-auto pr-1">
-          <Card className="shadow-none">
+          <Card className="rm-border-only">
             <CardHeader className="border-b">
               <CardTitle className="text-base">Thông tin hộ gia đình</CardTitle>
             </CardHeader>
@@ -186,7 +186,7 @@ export default function HouseholdDetailDialog({ open, onOpenChange, household })
                   });
 
                 return (
-                  <Card key={memberKey} className="shadow-none">
+                  <Card key={memberKey} className="rm-border-only">
                     <CardHeader className="border-b">
                       <div className="flex items-center justify-between gap-3">
                         <CardTitle className="text-base">

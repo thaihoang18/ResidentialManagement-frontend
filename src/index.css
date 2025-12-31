@@ -795,6 +795,16 @@ body::after {
   box-shadow: var(--glass-shadow);
 }
 
+/* Border-only variant: keep the border but remove dark shadows/glass layers (useful for detail dialogs). */
+[data-slot="card"].rm-border-only {
+  box-shadow: none !important;
+}
+
+[data-slot="card"].rm-border-only::before,
+[data-slot="card"].rm-border-only::after {
+  display: none !important;
+}
+
 /* Only static containers need explicit positioning for glass pseudo-layers.
    Do NOT override Radix positioning (Dialog/Sheet/Popover) or they'll stop centering/anchoring. */
 [data-slot="card"],

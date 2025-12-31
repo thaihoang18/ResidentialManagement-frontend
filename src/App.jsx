@@ -7,6 +7,7 @@ import Household from "./pages/household";
 import Resident from "./pages/resident";
 import TemporaryStayLeave from "./pages/temporaryStayLeave";
 import UserPage from "./pages/user";
+import ProfilePage from "./pages/profile";
 import SideBar from "./components/SideBar";
 import Login from "./pages/auth";
 import CheckinPage from "./pages/checkin";
@@ -45,28 +46,32 @@ function AppRoutes() {
 
           <Route
             path="/"
-            element={<ProtectedRoute><HomePage /></ProtectedRoute>}
+            element={<ProtectedRoute allowedRoles={["leader","deputy","officer"]}><HomePage /></ProtectedRoute>}
           />
           <Route
             path="/meeting"
-            element={<ProtectedRoute><Meeting /></ProtectedRoute>}
+            element={<ProtectedRoute allowedRoles={["leader","deputy","officer"]}><Meeting /></ProtectedRoute>}
+          />
+          <Route
+            path="/profile"
+            element={<ProtectedRoute allowedRoles={["leader","deputy","officer"]}><ProfilePage /></ProtectedRoute>}
           />
           <Route
             path="/household"
-            element={<ProtectedRoute><Household /></ProtectedRoute>}
+            element={<ProtectedRoute allowedRoles={["leader","deputy"]}><Household /></ProtectedRoute>}
           />
           <Route
             path="/resident"
-            element={<ProtectedRoute><Resident /></ProtectedRoute>}
+            element={<ProtectedRoute allowedRoles={["leader","deputy"]}><Resident /></ProtectedRoute>}
           />
           <Route
             path="/temporary"
-            element={<ProtectedRoute><TemporaryStayLeave /></ProtectedRoute>}
+            element={<ProtectedRoute allowedRoles={["leader","deputy"]}><TemporaryStayLeave /></ProtectedRoute>}
           />
           <Route
             path="/user"
             element={
-              <ProtectedRoute allowedRoles={["admin"]}>
+              <ProtectedRoute allowedRoles={["leader"]}>
                 <UserPage />
               </ProtectedRoute>
             }

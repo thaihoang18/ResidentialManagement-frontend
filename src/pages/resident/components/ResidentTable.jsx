@@ -59,6 +59,22 @@ export default function ResidentTable({ data = [], onEdit, onDelete, onView, loa
               <Button
                 variant="ghost"
                 size="icon-sm"
+                onClick={() => onView && onView(row.original)}
+                aria-label="Xem"
+                className="accent-text"
+              >
+                <Eye />
+                <span className="sr-only">Xem</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>Xem</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => {
                   setHistoryResident(row.original);
                   setHistoryOpen(true);
@@ -71,22 +87,6 @@ export default function ResidentTable({ data = [], onEdit, onDelete, onView, loa
               </Button>
             </TooltipTrigger>
             <TooltipContent sideOffset={6}>Lịch sử</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onView && onView(row.original)}
-                aria-label="Xem"
-                className="accent-text"
-              >
-                <Eye />
-                <span className="sr-only">Xem</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent sideOffset={6}>Xem</TooltipContent>
           </Tooltip>
 
           <Tooltip>

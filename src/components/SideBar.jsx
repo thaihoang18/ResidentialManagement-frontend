@@ -13,7 +13,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "./ui/sidebar"
-import { User, Users, Home, MapPin, Calendar, LogOut } from "lucide-react"
+import { KeyRound, Users, Home, MapPin, Calendar, LogOut, CircleUser } from "lucide-react"
 import { getUserRole, logout } from "@/lib/auth"
 import { useNavigate } from "react-router"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -44,33 +44,39 @@ function SideBar() {
   const navItems = [
     {
       path: "/user",
-      label: "Quản lý người dùng",
-      Icon: User,
-      roles: ["admin"],
+      label: "Quản lý tài khoản",
+      Icon: KeyRound,
+      roles: ["leader"],
     },
     {
       path: "/resident",
       label: "Quản lý nhân khẩu",
       Icon: Users,
-      roles: ["admin"],
+      roles: ["leader", "deputy"],
     },
     {
       path: "/household",
       label: "Quản lý hộ khẩu",
       Icon: Home,
-      roles: ["admin"],
+      roles: ["leader", "deputy"],
     },
     {
       path: "/temporary",
       label: "Tạm trú / Tạm vắng",
       Icon: MapPin,
-      roles: ["admin"],
+      roles: ["leader", "deputy"],
     },
     {
       path: "/meeting",
       label: "Lịch họp",
       Icon: Calendar,
-      roles: ["admin", "officer"],
+      roles: ["leader", "deputy", "officer"],
+    },
+    {
+      path: "/profile",
+      label: "Hồ sơ",
+      Icon: CircleUser,
+      roles: ["leader", "deputy", "officer"],
     },
   ]
 
