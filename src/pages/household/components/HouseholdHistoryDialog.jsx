@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { toLocalYmd } from "@/lib/date";
 
 const RESIDENT_FIELD_LABELS = {
   full_name: "Họ và tên",
@@ -91,6 +92,14 @@ function viResidentStatus(value) {
   return s;
 }
 
+function formatDateOnlyVi(value) {
+  const ymd = toLocalYmd(value);
+  if (!ymd) return "-";
+  const [y, m, d] = ymd.split("-");
+  if (!y || !m || !d) return "-";
+  return `${d}/${m}/${y}`;
+}
+
 function summarizeChange(row) {
   const type = row?.change_type || "-";
   if (type === "CREATE") return "Thêm mới nhân khẩu";
@@ -147,6 +156,9 @@ function formatValue(value) {
 
 function formatFieldValue(key, value) {
   if (key === "status") return viResidentStatus(value);
+  if (key === "date_of_birth" || key === "id_issue_date" || key === "registration_date") {
+    return formatDateOnlyVi(value);
+  }
   return formatValue(value);
 }
 
