@@ -277,7 +277,7 @@ export default function ResidentHistoryDialog({ open, onOpenChange, resident }) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-none sm:max-w-6xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-none sm:max-w-6xl max-h-[85vh] overflow-y-auto !bg-[var(--popover)]">
         <DialogHeader>
           <DialogTitle>
             Lịch sử thay đổi nhân khẩu: {resident?.full_name || resident?.id || ""}

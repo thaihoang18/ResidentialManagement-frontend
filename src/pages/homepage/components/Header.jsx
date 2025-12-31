@@ -2,6 +2,37 @@ import React from 'react'
 import { Home } from "lucide-react"
 
 function Header() {
+  const [populationTotal, setPopulationTotal] = React.useState(null)
+
+  const populationLabel = React.useMemo(() => {
+    if (typeof populationTotal !== 'number') return '—'
+    try {
+      return populationTotal.toLocaleString('vi-VN')
+    } catch (e) {
+      return String(populationTotal)
+    }
+  }, [populationTotal])
+
+  React.useEffect(() => {
+    let cancelled = false
+
+    const fetchTotal = async () => {
+      try {
+        const res = await fetch('/api/residents/statistics')
+        const json = await res.json().catch(() => ({}))
+        const total = json?.data?.total
+        if (!cancelled && typeof total === 'number') setPopulationTotal(total)
+      } catch (e) {
+        // silent
+      }
+    }
+
+    fetchTotal()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <header className="page-header glass-header header-gradient border border-border/60 mx-6 mt-6 lg:mt-4 rounded-2xl shadow-lg px-6 py-8 lg:py-5 relative overflow-hidden">
       <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -13,7 +44,9 @@ function Header() {
           <Home className="size-8 text-[color:var(--primary-dark)]" />
           <h1 className="text-4xl md:text-5xl lg:text-4xl font-bold tracking-tight drop-shadow-sm accent-text">HỆ THỐNG QUẢN LÝ DÂN CƯ</h1>
         </div>
-        <p className="mt-2 lg:mt-1 text-lg lg:text-base text-muted-foreground">PHƯỜNG LA KHÊ</p>
+        <p className="mt-2 lg:mt-1 text-lg lg:text-base text-muted-foreground">
+          Phường La Khê - <span className="font-semibold text-teal-600">{populationLabel}</span> cư dân
+        </p>
       </div>
     </header>
   )

@@ -16,6 +16,10 @@ export default function DayCell({ day, isCurrentMonth, isToday, events, onDayDet
     ? [...events].sort((a, b) => timeToMinutes(a?.time) - timeToMinutes(b?.time))
     : [];
 
+  const maxVisibleChips = 3;
+  const visibleChips = sortedEvents.slice(0, maxVisibleChips);
+  const remainingCount = Math.max(0, sortedEvents.length - visibleChips.length);
+
   function hexToRgbTriplet(hex) {
     if (!hex || typeof hex !== "string") return null;
     let value = hex.trim();
@@ -92,6 +96,36 @@ export default function DayCell({ day, isCurrentMonth, isToday, events, onDayDet
         </div>
         <span className="sr-only">{hasEvents ? `Ngày có ${events.length} cuộc họp` : `Ngày không có cuộc họp`}</span>
       </div>
+
+      {hasEvents ? (
+        <div className="mt-2 flex-1 min-h-0 overflow-hidden flex flex-col gap-1.5 pr-10 pb-8">
+          {visibleChips.map((ev, idx) => {
+            const topic = String(ev?.topic || ev?.title || ev?.name || "Cuộc họp");
+            const time = ev?.time ? String(ev.time) : "";
+            const display = time ? `${time} • ${topic}` : topic;
+            const accent = ev?.color || primaryEventColor;
+
+            return (
+              <div
+                key={`${ev?.id ?? ev?.meetingId ?? idx}`}
+                className="daycell-task-chip"
+                title={display}
+                style={{ borderLeftColor: accent }}
+              >
+                <span className="truncate">{display}</span>
+              </div>
+            );
+          })}
+
+          {remainingCount > 0 ? (
+            <div className="daycell-task-chip daycell-task-chip-more" title={`${remainingCount} cuộc họp khác`}>
+              <span className="truncate">+{remainingCount}…</span>
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div className="flex-1 min-h-0" />
+      )}
 
       {/* bottom-right badge showing number of meetings */}
       {hasEvents && (
