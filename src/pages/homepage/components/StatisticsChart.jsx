@@ -483,18 +483,9 @@ export default function StatisticsChart() {
   return (
     <div className="mx-6 flex-1 min-h-0 overflow-y-auto lg:overflow-hidden">
       <div className="h-full min-h-0 flex flex-col gap-4">
-        <div className="shrink-0 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold accent-text">Phân tích dân số</h2>
-            <p className="text-sm text-muted-foreground">
-              Tổng cư dân: <span className="font-semibold text-teal-600">{statistics.total || 0}</span>
-            </p>
-        </div>
-      </div>
-
         <div className="grid flex-1 min-h-0 gap-4 lg:gap-3 grid-cols-1 lg:grid-cols-12 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
           {/* Giới tính */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-7 lg:row-start-2">
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 order-2 lg:order-none lg:col-span-3 lg:col-start-7 lg:row-start-1">
             <CardHeader className="py-3 lg:py-2">
               <CardTitle className="text-base text-slate-800">Giới tính</CardTitle>
               <div className="flex flex-wrap items-center gap-3 mt-2">
@@ -569,7 +560,7 @@ export default function StatisticsChart() {
           </Card>
 
           {/* Độ tuổi */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-10 lg:row-start-2">
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 order-3 lg:order-none lg:col-span-3 lg:col-start-10 lg:row-start-1">
             <CardHeader className="py-3 lg:py-2">
               <CardTitle className="text-base text-slate-800">Độ tuổi</CardTitle>
             </CardHeader>
@@ -618,7 +609,7 @@ export default function StatisticsChart() {
         </Card>
 
           {/* Tần suất */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-7 lg:row-start-1">
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 order-5 lg:order-none lg:col-span-3 lg:col-start-7 lg:row-start-2">
             <CardHeader className="py-3 lg:py-2">
               <div className="flex items-center justify-between gap-3">
                 <CardTitle className="text-base text-slate-800">Tần suất tham gia</CardTitle>
@@ -753,7 +744,7 @@ export default function StatisticsChart() {
           </Card>
 
           {/* Tham gia họp */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-6 lg:col-start-1 lg:row-start-1">
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 order-4 lg:order-none lg:col-span-6 lg:col-start-1 lg:row-start-2">
             <CardHeader className="py-3 lg:py-2">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -871,7 +862,7 @@ export default function StatisticsChart() {
           </Card>
 
           {/* Biến động nhân khẩu */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-6 lg:col-start-1 lg:row-start-2">
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 order-1 lg:order-none lg:col-span-6 lg:col-start-1 lg:row-start-1">
             <CardHeader className="py-3 lg:py-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -977,7 +968,7 @@ export default function StatisticsChart() {
           </Card>
 
           {/* Gia đình văn hóa */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 gap-2 lg:col-span-3 lg:col-start-10 lg:row-start-1">
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 gap-2 order-6 lg:order-none lg:col-span-3 lg:col-start-10 lg:row-start-2">
             <CardHeader className="pt-3 pb-0 lg:pt-2 lg:pb-0">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">

@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, User } from "lucide-react";
+import { PlusIcon, KeyRound } from "lucide-react";
 
 export default function UserHeader({ onCreate }) {
   return (
@@ -8,8 +8,8 @@ export default function UserHeader({ onCreate }) {
       <div className="page-header glass-header rounded-2xl shadow-lg px-6 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6 header-gradient border border-border/60">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
-            <User className="size-7 text-[color:var(--primary-dark)]" />
-            <h1 className="text-4xl font-bold tracking-tight drop-shadow-sm accent-text">Quản lý người dùng</h1>
+            <KeyRound className="size-7 text-[color:var(--primary-dark)]" />
+            <h1 className="text-4xl font-bold tracking-tight drop-shadow-sm accent-text">Quản lý tài khoản</h1>
           </div>
           <p className="text-base text-muted-foreground">
             Quản lý tài khoản cán bộ (leader / deputy / officer), phân quyền và trạng thái hoạt động.

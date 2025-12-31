@@ -442,6 +442,78 @@ body::after {
   padding-right: 0.25rem; /* space for scrollbar */
 }
 
+/* Compact task chips inside DayCell (no scroll, truncated text) */
+.daycell-task-chip {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 26px;
+  padding: 0.28rem 0.5rem;
+  border-radius: 0.65rem;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid var(--glass-border);
+  border-left-width: 4px;
+  background:
+    var(--glass-highlight),
+    radial-gradient(140% 120% at 16% 10%, rgba(var(--brand-cyan-rgb), 0.10) 0%, rgba(255,255,255,0) 56%),
+    radial-gradient(140% 120% at 86% 0%, rgba(var(--primary-rgb), 0.08) 0%, rgba(255,255,255,0) 60%),
+    var(--glass-surface),
+    var(--glass-bg-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.66),
+    inset 0 -1px 0 rgba(255,255,255,0.14),
+    inset 0 0 0 1px rgba(255,255,255,0.12);
+  backdrop-filter: blur(26px) saturate(1.35) contrast(1.05);
+  -webkit-backdrop-filter: blur(26px) saturate(1.35) contrast(1.05);
+  color: var(--foreground);
+  font-size: 11px;
+  line-height: 1.2;
+  transition: var(--transition-smooth);
+}
+
+.daycell-task-chip::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,0.72) 0%,
+      rgba(255,255,255,0.20) 22%,
+      rgba(255,255,255,0) 48%
+    );
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.daycell-task-chip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(80% 60% at 28% 18%, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0) 72%),
+    radial-gradient(70% 55% at 82% 18%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0.45;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.daycell-has-events .daycell-task-chip {
+  border-color: var(--glass-border);
+}
+
+.daycell-task-chip-more {
+  border-left-color: rgba(var(--primary-rgb), 0.75);
+  background:
+    var(--glass-highlight),
+    radial-gradient(140% 120% at 16% 10%, rgba(var(--brand-cyan-rgb), 0.08) 0%, rgba(255,255,255,0) 56%),
+    var(--glass-surface),
+    var(--glass-bg);
+}
+
 /* Individual event items should not expand the cell */
 .daycell-event {
   flex: 0 0 auto;
@@ -721,6 +793,16 @@ body::after {
   border-color: var(--glass-border) !important;
   background: transparent !important;
   box-shadow: var(--glass-shadow);
+}
+
+/* Border-only variant: keep the border but remove dark shadows/glass layers (useful for detail dialogs). */
+[data-slot="card"].rm-border-only {
+  box-shadow: none !important;
+}
+
+[data-slot="card"].rm-border-only::before,
+[data-slot="card"].rm-border-only::after {
+  display: none !important;
 }
 
 /* Only static containers need explicit positioning for glass pseudo-layers.
