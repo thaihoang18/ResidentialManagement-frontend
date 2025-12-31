@@ -63,8 +63,8 @@ export default function StatisticsChart() {
   const [temporaryStayLeaveError, setTemporaryStayLeaveError] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(''); // 'YYYY-MM'
   const [selectedFrequencyMonth, setSelectedFrequencyMonth] = useState(''); // 'YYYY-MM'
-  const [selectedYear, setSelectedYear] = useState(''); // 'YYYY' cho biểu đồ tạm trú/tạm vắng
-  const [availableYears, setAvailableYears] = useState([]); // Danh sách các năm có dữ liệu
+  const [selectedYear, setSelectedYear] = useState('2025'); // 'YYYY' cho biểu đồ tạm trú/tạm vắng
+  const [availableYears] = useState(['2024', '2025', '2026']); // Chỉ cho phép 2024/2025/2026
 
   // Derived data (must be declared before any early returns to respect Rules of Hooks)
   const genderData = useMemo(() => {
@@ -78,10 +78,22 @@ export default function StatisticsChart() {
 
   const ageData = useMemo(() => {
     const byAge = statistics?.byAge ?? {};
-    return Object.entries(byAge).map(([name, value]) => ({
-      name,
-      value: value || 0,
-    }));
+    const order = ['Mầm non', 'Cấp 1', 'Cấp 2', 'Cấp 3', 'Lao động', 'Nghỉ hưu'];
+    const orderIndex = new Map(order.map((label, idx) => [label, idx]));
+
+    return Object.entries(byAge)
+      .map(([name, value]) => ({
+        name,
+        value: value || 0,
+      }))
+      .sort((a, b) => {
+        const ai = orderIndex.has(a.name) ? orderIndex.get(a.name) : Number.POSITIVE_INFINITY;
+        const bi = orderIndex.has(b.name) ? orderIndex.get(b.name) : Number.POSITIVE_INFINITY;
+
+        if (ai !== bi) return ai - bi;
+        // Unknown groups (e.g. 'Khác') go last, but keep stable alphabetical among them
+        return String(a.name).localeCompare(String(b.name), 'vi');
+      });
   }, [statistics]);
 
   // Độ tuổi: mỗi cột một màu khác nhau (palette mới riêng, không dùng màu vừa input cho chart khác)
@@ -152,7 +164,6 @@ export default function StatisticsChart() {
     fetchAttendanceStatistics();
     fetchTopHouseholds();
     fetchCulturalFamilies();
-    fetchTemporaryStayLeaveStatistics();
   }, []);
 
   // Fetch frequency stats khi selectedFrequencyMonth thay đổi
@@ -164,16 +175,16 @@ export default function StatisticsChart() {
 
   // Fetch lại khi năm thay đổi cho biểu đồ tạm trú/tạm vắng
   useEffect(() => {
-    if (selectedYear !== '') {
-      fetchTemporaryStayLeaveStatistics(selectedYear);
-    } else {
-      fetchTemporaryStayLeaveStatistics();
-    }
+    if (selectedYear) fetchTemporaryStayLeaveStatistics(selectedYear);
   }, [selectedYear]);
 
   // Set tháng gần nhất khi có dữ liệu (chỉ set một lần)
   useEffect(() => {
-    if (attendanceStats?.meetings && attendanceStats.meetings.length > 0 && selectedMonth === '') {
+    if (
+      attendanceStats?.meetings &&
+      attendanceStats.meetings.length > 0 &&
+      (selectedMonth === '' || selectedFrequencyMonth === '')
+    ) {
       const meetings = attendanceStats.meetings;
       const monthsSet = new Set();
       meetings.forEach(meeting => {
@@ -185,12 +196,16 @@ export default function StatisticsChart() {
       });
       const availableMonths = Array.from(monthsSet).sort().reverse();
       if (availableMonths.length > 0) {
-        const latestMonth = availableMonths[0];
-        setSelectedMonth(latestMonth); // Set tháng gần nhất
-        setSelectedFrequencyMonth(latestMonth); // Set tháng gần nhất cho frequency chart
+        const preferredDefaultMonth = '2025-12';
+        const initialMonth = availableMonths.includes(preferredDefaultMonth)
+          ? preferredDefaultMonth
+          : availableMonths[0];
+
+        if (selectedMonth === '') setSelectedMonth(initialMonth);
+        if (selectedFrequencyMonth === '') setSelectedFrequencyMonth(initialMonth);
       }
     }
-  }, [attendanceStats]);
+  }, [attendanceStats, selectedMonth, selectedFrequencyMonth]);
 
   const fetchStatistics = async () => {
     setLoading(true);
@@ -337,15 +352,6 @@ export default function StatisticsChart() {
       
       if (json.success) {
         setTemporaryStayLeaveStats(json.data);
-        // Chỉ cập nhật danh sách năm khi fetch không có year parameter (lần đầu hoặc "Tất cả")
-        if (!year && json.data && json.data.length > 0) {
-          const yearsSet = new Set();
-          json.data.forEach(stat => {
-            if (stat.year) yearsSet.add(stat.year);
-          });
-          const years = Array.from(yearsSet).sort((a, b) => b - a);
-          setAvailableYears(years);
-        }
       } else {
         throw new Error(json.error || 'Lỗi không xác định');
       }
@@ -831,6 +837,7 @@ export default function StatisticsChart() {
                           borderRadius: 12,
                           whiteSpace: "pre-wrap",
                         }}
+                        cursor={{ fill: "rgba(var(--primary-rgb), 0.08)" }}
                         formatter={(value, name) => {
                           if (name === "attendanceRate") {
                             return [`${value}%`, "Tỷ lệ tham gia"];
@@ -884,7 +891,6 @@ export default function StatisticsChart() {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="px-2 py-1 border border-slate-300 rounded-md text-xs text-slate-700 bg-white hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                   >
-                    <option value="">Tất cả</option>
                     {availableYears.map((year) => (
                       <option key={year} value={year}>
                         {year}
@@ -899,7 +905,7 @@ export default function StatisticsChart() {
                 <div className="flex flex-col items-center justify-center h-64 lg:h-full">
                   <p className="text-red-500">Lỗi: {temporaryStayLeaveError}</p>
                   <button
-                    onClick={() => fetchTemporaryStayLeaveStatistics(selectedYear || null)}
+                    onClick={() => fetchTemporaryStayLeaveStatistics(selectedYear)}
                     className="mt-2 px-4 py-2 rounded-md accent-btn action-btn"
                   >
                     Thử lại
@@ -971,12 +977,22 @@ export default function StatisticsChart() {
           </Card>
 
           {/* Gia đình văn hóa */}
-          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 lg:col-span-3 lg:col-start-10 lg:row-start-1">
-            <CardHeader className="py-3 lg:py-2">
-              <CardTitle className="text-base text-slate-800">Gia đình văn hóa</CardTitle>
-              <p className="text-xs text-slate-600">Tỷ lệ tham gia ≥ 90% trong năm</p>
+          <Card className="shadow-lg border-0 rounded-xl flex flex-col min-h-0 gap-2 lg:col-span-3 lg:col-start-10 lg:row-start-1">
+            <CardHeader className="pt-3 pb-0 lg:pt-2 lg:pb-0">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <CardTitle className="text-base text-slate-800">Gia đình văn hóa</CardTitle>
+                  <p className="text-xs text-slate-600">Tỷ lệ tham gia ≥ 90% trong năm</p>
+                </div>
+
+                {!culturalFamiliesLoading && !culturalFamiliesError && culturalFamilies && culturalFamilies.length > 0 ? (
+                  <p className="text-xs text-slate-600 shrink-0 pt-0.5">
+                    Tổng: <span className="font-semibold text-teal-600">{Math.min(culturalFamilies.length, 5)}</span> hộ
+                  </p>
+                ) : null}
+              </div>
             </CardHeader>
-            <CardContent className="flex-1 min-h-0 px-4">
+            <CardContent className="flex-1 min-h-0 px-4 pt-0">
               {culturalFamiliesError ? (
                 <div className="flex items-center justify-center h-80 lg:h-full">
                   <p className="text-red-500">Lỗi: {culturalFamiliesError}</p>
@@ -991,14 +1007,7 @@ export default function StatisticsChart() {
                 </div>
               ) : (
                 <div className="h-full flex flex-col min-h-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs text-slate-600">
-                      Tổng số: <span className="font-semibold text-teal-600">{culturalFamilies.length}</span> hộ
-                    </p>
-                    <p className="text-[11px] text-slate-500">Hiển thị 5 hộ</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-1.5 flex-1 min-h-0">
+                  <div className="grid grid-cols-1 grid-rows-5 gap-2 flex-1 min-h-0 overflow-visible">
                     {[...culturalFamilies]
                       .sort((a, b) => (b.attendanceRate || 0) - (a.attendanceRate || 0))
                       .slice(0, 5)
@@ -1007,7 +1016,7 @@ export default function StatisticsChart() {
                         const isTop = index === 0;
                         const isSecond = index === 1;
                         const isThird = index === 2;
-                        const baseClass = "relative p-2 rounded-lg border transition-all";
+                        const baseClass = "relative p-2 rounded-lg border transition-all h-full overflow-visible flex items-center";
                         const normalClass = "bg-white/80 border-slate-200 table-row-hover hover:bg-transparent hover:border-slate-300";
                         const highlightClass = "border-transparent";
                         return (
@@ -1018,7 +1027,7 @@ export default function StatisticsChart() {
                         >
                             {isTop ? (
                               <div
-                                className="absolute -top-2 -right-2 rounded-full p-1.5"
+                                className="absolute -top-3 -right-3 z-20 rounded-full p-1.5"
                                 style={{
                                   background: 'var(--gold-gradient)',
                                   boxShadow: '0 10px 18px rgba(var(--gold-rgb),0.22)',
@@ -1029,20 +1038,20 @@ export default function StatisticsChart() {
                                 <Crown className="h-4 w-4" style={{ color: 'var(--primary-foreground)' }} />
                               </div>
                             ) : null}
-                          <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center justify-between gap-2 w-full overflow-hidden">
                             <div className="min-w-0">
-                              <p className="text-[11px] text-slate-600 truncate">
+                              <p className="text-xs text-slate-700 truncate leading-tight">
                                 <span className="font-semibold text-slate-800">{household.householdCode}</span>
                                 {household.headName ? (
                                   <span className="text-slate-500"> • {household.headName}</span>
                                 ) : null}
                               </p>
-                              <p className="text-[11px] text-slate-600">
+                              <p className="text-xs text-slate-600 leading-tight">
                                 Tham gia: <span className="font-semibold text-slate-800">{household.attendanceCount}/{household.totalMeetings}</span>
                               </p>
                             </div>
                             <div className="shrink-0 text-right">
-                              <p className="font-bold text-slate-900 text-sm leading-4">{household.attendanceRate.toFixed(1)}%</p>
+                              <p className="font-bold text-slate-900 text-base leading-none">{household.attendanceRate.toFixed(1)}%</p>
                             </div>
                           </div>
                         </div>

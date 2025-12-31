@@ -379,7 +379,7 @@ export default function HouseholdHistoryDialog({ open, onOpenChange, household }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-none sm:max-w-6xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:w-full max-w-none sm:max-w-6xl max-h-[85vh] overflow-y-auto !bg-[var(--popover)]">
         <DialogHeader>
           <DialogTitle>
             Lịch sử nhân khẩu của hộ: {household?.household_code || household?.id || ""}

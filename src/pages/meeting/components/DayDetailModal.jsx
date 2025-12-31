@@ -13,7 +13,33 @@ export default function DayDetailModal({
   onQr,
   onPrintInvite,
 }) {
-  if (!day) return null;
+  const CLOSE_MS = 320;
+  const [mounted, setMounted] = React.useState(!!day);
+  const [renderDay, setRenderDay] = React.useState(day);
+  const [uiState, setUiState] = React.useState("closed");
+
+  React.useEffect(() => {
+    if (day) {
+      setRenderDay(day);
+      setMounted(true);
+      // Force at least one paint in "closed" state, then animate to "open".
+      setUiState("closed");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setUiState("open"));
+      });
+      return;
+    }
+
+    if (!mounted) return;
+    setUiState("closed");
+    const t = window.setTimeout(() => {
+      setMounted(false);
+      setRenderDay(null);
+    }, CLOSE_MS);
+    return () => window.clearTimeout(t);
+  }, [day, mounted]);
+
+  if (!mounted || !renderDay) return null;
 
   function normalizeHexColor(input, fallback = "#32f1cd") {
     if (input === undefined || input === null) return fallback;
@@ -28,7 +54,7 @@ export default function DayDetailModal({
   function getLocalDateString(day) {
     return `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
   }
-  const iso = getLocalDateString(day);
+  const iso = getLocalDateString(renderDay);
   function timeToMinutes(value) {
     if (!value || typeof value !== "string") return Number.POSITIVE_INFINITY;
     const [hhStr, mmStr] = value.split(":");
@@ -47,13 +73,23 @@ export default function DayDetailModal({
       return String(a?.title ?? "").localeCompare(String(b?.title ?? ""));
     });
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div
+      data-state={uiState}
+      className="rm-modal-overlay fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          setUiState("closed");
+          onClose?.();
+        }
+      }}
+    >
       <div
-        className="glass-panel rounded-xl border p-5 w-[calc(100%-2rem)] max-w-5xl max-h-[calc(100vh-2rem)] flex flex-col"
+        data-state={uiState}
+        className="rm-modal-panel rm-popup-panel rounded-xl border p-5 w-[calc(100%-2rem)] max-w-5xl max-h-[calc(100vh-2rem)] flex flex-col"
       >
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold accent-text">Chi tiết ngày {day.getDate()}/{day.getMonth()+1}/{day.getFullYear()}</h2>
-          <Button aria-label="Đóng" variant="ghost" size="icon" onClick={onClose} className="accent-text close-btn"><XIcon className="w-5 h-5"/></Button>
+          <h2 className="text-lg font-semibold accent-text">Chi tiết ngày {renderDay.getDate()}/{renderDay.getMonth()+1}/{renderDay.getFullYear()}</h2>
+          <Button aria-label="Đóng" variant="ghost" size="icon" onClick={() => { setUiState("closed"); onClose?.(); }} className="accent-text close-btn"><XIcon className="w-5 h-5"/></Button>
         </div>
         <div className="mb-3 text-sm text-muted-foreground">Tổng số cuộc họp: {dayEvents.length}</div>
 
@@ -178,10 +214,11 @@ export default function DayDetailModal({
                           aria-label="Xóa"
                           title="Xóa"
                           size="icon"
-                          className="accent-btn action-btn"
+                          variant="destructive"
+                          className="action-btn !bg-destructive !text-white hover:!bg-destructive/90"
                           onClick={() => onDelete?.(ev)}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4 !text-white" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent sideOffset={6}>Xóa</TooltipContent>

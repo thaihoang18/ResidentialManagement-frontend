@@ -5,6 +5,7 @@ import { login } from '@/lib/auth'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import AuthFooter from './AuthFooter.jsx'
+import { runAppTransition } from '@/lib/transition'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
@@ -19,7 +20,9 @@ export default function LoginForm() {
     setLoading(false)
     if (res.ok) {
       toast.success('Đăng nhập thành công')
-      navigate('/', { replace: true })
+      await runAppTransition(() => {
+        navigate('/', { replace: true })
+      })
     } else {
       toast.error(res.error || 'Đăng nhập thất bại')
     }

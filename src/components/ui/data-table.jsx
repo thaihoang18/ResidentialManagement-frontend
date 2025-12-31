@@ -229,7 +229,7 @@ export function DataTable({
                   {header.isPlaceholder ? null : header.column.getCanSort() ? (
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 text-foreground hover:text-foreground"
+                      className="inline-flex items-center gap-2 text-foreground hover:text-foreground transition-colors duration-200 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-none"
                       onClick={header.column.getToggleSortingHandler()}>
                       {flexRender(
                         header.column.columnDef.header,

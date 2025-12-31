@@ -50,6 +50,7 @@ function generateCalendar(year, month) {
 function Meeting() {
     const today = new Date();
     const [view, setView] = useState({ year: today.getFullYear(), month: today.getMonth() });
+    const [monthDir, setMonthDir] = useState("none");
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -112,6 +113,7 @@ function Meeting() {
     const weeks = useMemo(() => generateCalendar(view.year, view.month), [view]);
 
     function prevMonth() {
+        setMonthDir("prev");
         setView(({ year, month }) => {
             if (month === 0) return { year: year - 1, month: 11 };
             return { year, month: month - 1 };
@@ -119,6 +121,7 @@ function Meeting() {
     }
 
     function nextMonth() {
+        setMonthDir("next");
         setView(({ year, month }) => {
             if (month === 11) return { year: year + 1, month: 0 };
             return { year, month: month + 1 };
@@ -127,6 +130,9 @@ function Meeting() {
 
     function goToday() {
         const t = new Date();
+        const currentIndex = view.year * 12 + view.month;
+        const nextIndex = t.getFullYear() * 12 + t.getMonth();
+        setMonthDir(nextIndex > currentIndex ? "next" : nextIndex < currentIndex ? "prev" : "none");
         setView({ year: t.getFullYear(), month: t.getMonth() });
     }
 
@@ -510,13 +516,21 @@ function Meeting() {
                                         </div>
                                 ))}
                         </div>
-                        <CalendarGrid
-                            weeks={weeks}
-                            month={view.month}
-                            events={events}
-                            onDayDetail={openDayDetail}
-                            onAdd={openAdd}
-                        />
+                        <div className="rm-calendar-transition-wrapper">
+                            <div
+                                key={`${view.year}-${view.month}`}
+                                data-dir={monthDir}
+                                className="rm-calendar-transition"
+                            >
+                                <CalendarGrid
+                                    weeks={weeks}
+                                    month={view.month}
+                                    events={events}
+                                    onDayDetail={openDayDetail}
+                                    onAdd={openAdd}
+                                />
+                            </div>
+                        </div>
         <DayDetailModal
           day={selectedDay}
           events={events}
