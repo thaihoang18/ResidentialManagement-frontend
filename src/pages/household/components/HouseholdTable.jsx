@@ -1,10 +1,14 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Edit2, Split, Trash2 } from "lucide-react";
+import { Edit2, History, Split, Trash2 } from "lucide-react";
+import HouseholdHistoryDialog from "./HouseholdHistoryDialog";
 
 export default function HouseholdTable({ data, onEdit, onDelete, onSplit }) {
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyHousehold, setHistoryHousehold] = useState(null);
+
   const columns = useMemo(
     () => [
       {
@@ -39,6 +43,25 @@ export default function HouseholdTable({ data, onEdit, onDelete, onSplit }) {
         enableColumnFilter: false,
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => {
+                    setHistoryHousehold(row.original);
+                    setHistoryOpen(true);
+                  }}
+                  aria-label="Lịch sử"
+                  className="accent-text"
+                >
+                  <History />
+                  <span className="sr-only">Lịch sử</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>Lịch sử</TooltipContent>
+            </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -94,21 +117,29 @@ export default function HouseholdTable({ data, onEdit, onDelete, onSplit }) {
   );
 
   return (
-    <DataTable
-      columns={columns}
-      data={data}
-      enablePagination
-      pageSize={20}
-      enableSearch
-      searchPlaceholder="Tìm theo mã hộ, số nhà, tên đường, chủ hộ..."
-      enableFilters
-      filters={[
-        { id: "household_code", label: "Mã hộ", type: "text", placeholder: "VD: HK001" },
-        { id: "house_number", label: "Số nhà", type: "text", placeholder: "VD: 12A" },
-        { id: "street", label: "Tên đường", type: "select" },
-        { id: "head_name", label: "Tên chủ hộ", type: "text", placeholder: "VD: Nguyễn Văn A" },
-      ]} 
-      rowClassName="table-row-hover"
-    />
+    <>
+      <DataTable
+        columns={columns}
+        data={data}
+        enablePagination
+        pageSize={20}
+        enableSearch
+        searchPlaceholder="Tìm theo mã hộ, số nhà, tên đường, chủ hộ..."
+        enableFilters
+        filters={[
+          { id: "household_code", label: "Mã hộ", type: "text", placeholder: "VD: HK001" },
+          { id: "house_number", label: "Số nhà", type: "text", placeholder: "VD: 12A" },
+          { id: "street", label: "Tên đường", type: "select" },
+          { id: "head_name", label: "Tên chủ hộ", type: "text", placeholder: "VD: Nguyễn Văn A" },
+        ]}
+        rowClassName="table-row-hover"
+      />
+
+      <HouseholdHistoryDialog
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        household={historyHousehold}
+      />
+    </>
   );
 }

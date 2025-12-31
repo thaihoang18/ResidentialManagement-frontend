@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Check, Lock, Pencil, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -26,14 +27,22 @@ export default function HouseholdFormDialog({
   residents = [],
   residentsLoading = false,
   residentsError = null,
+  members = [],
+  membersLoading = false,
+  membersError = null,
+  onUpdateMemberRelation,
 }) {
   const [headQuery, setHeadQuery] = useState("");
   const prevOpenRef = useRef(false);
+  const [editingMemberId, setEditingMemberId] = useState(null);
+  const [relationDraft, setRelationDraft] = useState("");
+  const [relationSaving, setRelationSaving] = useState(false);
+  const [relationError, setRelationError] = useState(null);
 
   const filteredResidents = useMemo(() => {
     if (!enableHeadSearch) return [];
     const q = headQuery.trim().toLowerCase();
-    if (!q) return residents.slice(0, 8);
+    if (!q) return [];
     return residents
       .filter((r) => {
         const name = String(r?.full_name || "").toLowerCase();
@@ -60,6 +69,37 @@ export default function HouseholdFormDialog({
     // When dialog is opened, prefill query with selected resident name (if any)
     setHeadQuery(selectedResident?.full_name || "");
   }, [enableHeadSearch, open, selectedResident?.full_name]);
+
+  useEffect(() => {
+    if (!open) {
+      setEditingMemberId(null);
+      setRelationDraft("");
+      setRelationSaving(false);
+      setRelationError(null);
+    }
+  }, [open]);
+
+  const headIdNum = useMemo(() => {
+    const n = Number(form?.head_id);
+    return Number.isNaN(n) ? null : n;
+  }, [form?.head_id]);
+
+  async function saveRelation(member) {
+    if (!member?.id) return;
+    if (typeof onUpdateMemberRelation !== "function") return;
+    setRelationSaving(true);
+    setRelationError(null);
+    try {
+      const next = relationDraft.trim();
+      await onUpdateMemberRelation(member, next);
+      setEditingMemberId(null);
+      setRelationDraft("");
+    } catch (e) {
+      setRelationError(e?.message || "Cập nhật quan hệ thất bại");
+    } finally {
+      setRelationSaving(false);
+    }
+  }
 
   function formatDob(value) {
     if (!value) return "";
@@ -123,59 +163,49 @@ export default function HouseholdFormDialog({
                   Đang tải danh sách nhân khẩu...
                 </div>
               ) : (
-                <div className="rounded-md border divide-y">
-                  {filteredResidents.length ? (
-                    filteredResidents.map((r) => (
-                      <Tooltip key={r.id}>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50"
-                            onClick={() => {
-                              onChange({ ...form, head_id: String(r.id) });
-                              setHeadQuery(r.full_name || "");
-                            }}>
-                            <div className="font-medium">{r.full_name}</div>
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent sideOffset={6}>
-                          {renderResidentDetails(r)}
-                        </TooltipContent>
-                      </Tooltip>
-                    ))
-                  ) : (
-                    <div className="px-3 py-2 text-sm text-muted-foreground">
-                      Không tìm thấy nhân khẩu.
-                    </div>
-                  )}
-                </div>
+                headQuery.trim() ? (
+                  <div className="rounded-md border divide-y">
+                    {filteredResidents.length ? (
+                      filteredResidents.map((r) => (
+                        <Tooltip key={r.id}>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50"
+                              onClick={() => {
+                                onChange({ ...form, head_id: String(r.id) });
+                                setHeadQuery(r.full_name || "");
+                              }}>
+                              <div className="font-medium">{r.full_name}</div>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent sideOffset={6}>
+                            {renderResidentDetails(r)}
+                          </TooltipContent>
+                        </Tooltip>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        Không tìm thấy nhân khẩu.
+                      </div>
+                    )}
+                  </div>
+                ) : null
               )}
 
               <div className="flex items-center justify-between gap-2">
-                <div className="text-sm text-muted-foreground">
-                  {selectedResident ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="cursor-help">Đã chọn: {selectedResident.full_name}</span>
-                      </TooltipTrigger>
-                      <TooltipContent sideOffset={6}>
-                        {renderResidentDetails(selectedResident)}
-                      </TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    "Chưa chọn chủ hộ"
-                  )}
-                </div>
+                <div className="text-sm text-muted-foreground">{selectedResident ? "" : "Chưa chọn chủ hộ"}</div>
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  size="icon"
                   className="accent-outline action-btn"
                   onClick={() => {
                     onChange({ ...form, head_id: "" });
                     setHeadQuery("");
-                  }}>
-                  Bỏ chọn
+                  }}
+                  aria-label="Bỏ chọn chủ hộ">
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -209,15 +239,136 @@ export default function HouseholdFormDialog({
             />
           </div>
 
+          {form?.id ? (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Thành viên trong hộ</label>
+
+              {membersError ? <div className="text-sm text-destructive">{membersError}</div> : null}
+              {relationError ? <div className="text-sm text-destructive">{relationError}</div> : null}
+
+              {membersLoading ? (
+                <div className="text-sm text-muted-foreground">Đang tải danh sách thành viên...</div>
+              ) : (
+                <div className="rounded-md border divide-y">
+                  {Array.isArray(members) && members.length > 0 ? (
+                    members.map((m) => {
+                      const isHead = headIdNum !== null && Number(m?.id) === headIdNum;
+                      const isEditing = Number(m?.id) === Number(editingMemberId);
+                      const relationText = isHead ? "Chủ hộ" : (m?.relation_to_head || "-");
+
+                      return (
+                        <div key={m?.id} className="px-3 py-2">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="min-w-0">
+                              <div className="font-medium truncate">{m?.full_name || "-"}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {m?.id_number ? `CCCD: ${m.id_number}` : "CCCD: -"}
+                                <span className="mx-2">•</span>
+                                Quan hệ: <span className="text-foreground">{relationText}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {isHead ? (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button type="button" variant="outline" size="icon" disabled aria-label="Không chỉnh sửa chủ hộ">
+                                      <Lock className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent sideOffset={6}>Không chỉnh sửa chủ hộ</TooltipContent>
+                                </Tooltip>
+                              ) : isEditing ? (
+                                <>
+                                  <Input
+                                    value={relationDraft}
+                                    onChange={(e) => setRelationDraft(e.target.value)}
+                                    placeholder="Nhập quan hệ (VD: Con đẻ, Vợ, Chồng...)"
+                                    className="w-[16rem]"
+                                  />
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    className="accent-btn action-btn"
+                                    disabled={relationSaving}
+                                    onClick={() => saveRelation(m)}
+                                    aria-label={relationSaving ? "Đang lưu quan hệ" : "Lưu quan hệ"}>
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="accent-outline action-btn"
+                                    disabled={relationSaving}
+                                    onClick={() => {
+                                      setEditingMemberId(null);
+                                      setRelationDraft("");
+                                      setRelationError(null);
+                                    }}
+                                    aria-label="Hủy chỉnh sửa quan hệ">
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              ) : (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      className="accent-outline action-btn"
+                                      onClick={() => {
+                                        setEditingMemberId(m?.id);
+                                        setRelationDraft(String(m?.relation_to_head || ""));
+                                        setRelationError(null);
+                                      }}
+                                      aria-label="Chỉnh sửa quan hệ với chủ hộ">
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent sideOffset={6}>Chỉnh sửa quan hệ</TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">Chưa có thành viên trong hộ.</div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : null}
+
           {error ? <div className="text-sm text-destructive">{error}</div> : null}
 
           <DialogFooter>
-            <Button type="button" variant="outline" size="sm" className="accent-outline action-btn" onClick={() => onOpenChange(false)}>
-              Hủy
-            </Button>
-            <Button type="submit" className="accent-btn action-btn" disabled={saving}>
-              {saving ? "Đang lưu..." : submitLabel}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="accent-outline action-btn"
+                  onClick={() => onOpenChange(false)}
+                  aria-label="Hủy">
+                  <X className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>Hủy</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button type="submit" size="icon" className="accent-btn action-btn" disabled={saving} aria-label={saving ? "Đang lưu" : submitLabel}>
+                  <Check className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>{saving ? "Đang lưu..." : submitLabel}</TooltipContent>
+            </Tooltip>
           </DialogFooter>
         </form>
       </DialogContent>

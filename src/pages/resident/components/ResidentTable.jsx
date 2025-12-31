@@ -1,10 +1,14 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, History, Trash2 } from "lucide-react";
+import ResidentHistoryDialog from "./ResidentHistoryDialog";
 
 export default function ResidentTable({ data = [], onEdit, onDelete, loading }) {
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyResident, setHistoryResident] = useState(null);
+
   const formatDate = (value) => {
     if (!value) return "-";
     const d = new Date(value);
@@ -48,6 +52,25 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
               <Button
                 variant="ghost"
                 size="icon-sm"
+                onClick={() => {
+                  setHistoryResident(row.original);
+                  setHistoryOpen(true);
+                }}
+                aria-label="Lịch sử"
+                className="accent-text"
+              >
+                <History />
+                <span className="sr-only">Lịch sử</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>Lịch sử</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => onEdit(row.original)}
                 aria-label="Sửa"
                 className="accent-text"
@@ -81,23 +104,31 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
   );
 
   return (
-    <DataTable
-      columns={columns}
-      data={data}
-      loading={loading}
-      enablePagination
-      pageSize={20}
-      enableSearch
-      searchPlaceholder="Tìm theo tên, số CMND, nơi sinh..."
-      enableFilters
-      filters={[
-        { id: "full_name", label: "Họ và tên", type: "text", placeholder: "VD: Nguyễn Văn A" },
-        { id: "place_of_birth", label: "Nơi sinh", type: "text", placeholder: "VD: Hà Nội" },
-        { id: "gender", label: "Giới tính", type: "select"},
-        { id: "occupation", label: "Nghề nghiệp", type: "select"},
-        { id: "relation_to_head", label: "Quan hệ", type: "select"},
-      ]}
-      rowClassName="table-row-hover"
-    />
+    <>
+      <DataTable
+        columns={columns}
+        data={data}
+        loading={loading}
+        enablePagination
+        pageSize={20}
+        enableSearch
+        searchPlaceholder="Tìm theo tên, số CMND, nơi sinh..."
+        enableFilters
+        filters={[
+          { id: "full_name", label: "Họ và tên", type: "text", placeholder: "VD: Nguyễn Văn A" },
+          { id: "place_of_birth", label: "Nơi sinh", type: "text", placeholder: "VD: Hà Nội" },
+          { id: "gender", label: "Giới tính", type: "select" },
+          { id: "occupation", label: "Nghề nghiệp", type: "select" },
+          { id: "relation_to_head", label: "Quan hệ", type: "select" },
+        ]}
+        rowClassName="table-row-hover"
+      />
+
+      <ResidentHistoryDialog
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        resident={historyResident}
+      />
+    </>
   );
 }
