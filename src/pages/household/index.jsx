@@ -41,6 +41,30 @@ function Household() {
     const [editMembersLoading, setEditMembersLoading] = useState(false);
     const [editMembersError, setEditMembersError] = useState(null);
 
+    const loadEditMembersByCode = useCallback(async (householdCode) => {
+        if (!householdCode) {
+            setEditMembers([]);
+            setEditMembersError(null);
+            setEditMembersLoading(false);
+            return;
+        }
+
+        setEditMembersLoading(true);
+        setEditMembersError(null);
+        try {
+            const res = await fetch(`/api/households/${householdCode}/residents`);
+            const json = await res.json().catch(() => null);
+            if (!res.ok) throw new Error(json?.error || "Lỗi tải danh sách nhân khẩu của hộ");
+            const rows = Array.isArray(json?.data) ? json.data : [];
+            setEditMembers(rows);
+        } catch (e) {
+            setEditMembersError(e?.message || "Có lỗi xảy ra");
+            setEditMembers([]);
+        } finally {
+            setEditMembersLoading(false);
+        }
+    }, []);
+
     const [splitOpen, setSplitOpen] = useState(false);
     const [splitSaving, setSplitSaving] = useState(false);
     const [splitError, setSplitError] = useState(null);
@@ -110,29 +134,13 @@ function Household() {
 
         setEditMembers([]);
         setEditMembersError(null);
-        if (row?.household_code) {
-            (async () => {
-                setEditMembersLoading(true);
-                try {
-                    const res = await fetch(`/api/households/${row.household_code}/residents`);
-                    const json = await res.json().catch(() => null);
-                    if (!res.ok) throw new Error(json?.error || "Lỗi tải danh sách nhân khẩu của hộ");
-                    const rows = Array.isArray(json?.data) ? json.data : [];
-                    setEditMembers(rows);
-                } catch (e) {
-                    setEditMembersError(e?.message || "Có lỗi xảy ra");
-                    setEditMembers([]);
-                } finally {
-                    setEditMembersLoading(false);
-                }
-            })();
-        }
+        if (row?.household_code) loadEditMembersByCode(row.household_code);
 
         // load residents for head search (when editing)
         if (!residentsLoading && residents.length === 0 && !residentsError) {
             loadResidents();
         }
-    }, [loadResidents, residents.length, residentsError, residentsLoading]);
+    }, [loadEditMembersByCode, loadResidents, residents.length, residentsError, residentsLoading]);
 
     const updateMemberRelation = useCallback(async (member, nextRelationRaw) => {
         if (!member?.id) throw new Error("Thiếu ID nhân khẩu");
@@ -169,6 +177,130 @@ function Household() {
                 : prev
         );
     }, []);
+
+    const addMemberToHousehold = useCallback(async (residentIdRaw, relationRaw) => {
+        if (!editForm?.id) throw new Error("Thiếu ID hộ gia đình");
+        const residentIdNum = Number(residentIdRaw);
+        if (Number.isNaN(residentIdNum)) throw new Error("ID nhân khẩu không hợp lệ");
+
+        const target = residents.find((r) => Number(r?.id) === residentIdNum);
+        if (!target) throw new Error("Không tìm thấy nhân khẩu");
+
+        const headIdNum = editForm?.head_id === "" || editForm?.head_id === null || editForm?.head_id === undefined
+            ? null
+            : Number(editForm.head_id);
+
+        const payload = {
+            household_id: Number(editForm.id),
+            full_name: target.full_name,
+            date_of_birth: target.date_of_birth,
+            place_of_birth: target.place_of_birth,
+            native_place: target.native_place,
+            ethnicity: target.ethnicity,
+            occupation: target.occupation,
+            id_number: target.id_number,
+            id_issue_date: target.id_issue_date,
+            id_issue_place: target.id_issue_place,
+            registration_date: target.registration_date,
+            relation_to_head:
+                headIdNum !== null && !Number.isNaN(headIdNum) && residentIdNum === headIdNum
+                    ? "Chủ hộ"
+                    : (relationRaw ? String(relationRaw).trim() : null),
+            gender: target.gender,
+            status: target.status,
+        };
+
+        const res = await fetch(`/api/residents/${residentIdNum}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const json = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(json?.error || "Thêm thành viên thất bại");
+
+        await loadEditMembersByCode(editForm.household_code);
+    }, [editForm, loadEditMembersByCode, residents]);
+
+    const moveMemberToHousehold = useCallback(async (member, targetHouseholdIdRaw) => {
+        if (!editForm?.household_code) throw new Error("Thiếu mã hộ gia đình");
+        if (!member?.id) throw new Error("Thiếu ID nhân khẩu");
+        const targetHouseholdId = Number(targetHouseholdIdRaw);
+        if (Number.isNaN(targetHouseholdId)) throw new Error("Hộ đích không hợp lệ");
+        if (Number(targetHouseholdId) === Number(editForm.id)) throw new Error("Hộ đích phải khác hộ hiện tại");
+
+        // Prevent moving current head out of household via UI
+        const headId = normalizeHeadId(editForm.head_id);
+        if (headId !== null && Number(member.id) === Number(headId)) {
+            throw new Error("Không thể xóa chủ hộ khỏi hộ hiện tại");
+        }
+
+        const payload = {
+            household_id: targetHouseholdId,
+            full_name: member.full_name,
+            date_of_birth: member.date_of_birth,
+            place_of_birth: member.place_of_birth,
+            native_place: member.native_place,
+            ethnicity: member.ethnicity,
+            occupation: member.occupation,
+            id_number: member.id_number,
+            id_issue_date: member.id_issue_date,
+            id_issue_place: member.id_issue_place,
+            registration_date: member.registration_date,
+            relation_to_head: null,
+            gender: member.gender,
+            status: member.status,
+        };
+
+        const res = await fetch(`/api/residents/${member.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const json = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(json?.error || "Xóa thành viên khỏi hộ thất bại");
+
+        await loadEditMembersByCode(editForm.household_code);
+    }, [editForm, loadEditMembersByCode]);
+
+    const removeMemberFromHousehold = useCallback(async (member) => {
+        if (!editForm?.household_code) throw new Error("Thiếu mã hộ gia đình");
+        if (!member?.id) throw new Error("Thiếu ID nhân khẩu");
+
+        const headId = normalizeHeadId(editForm.head_id);
+        if (headId !== null && Number(member.id) === Number(headId)) {
+            throw new Error("Không thể xóa chủ hộ khỏi hộ hiện tại");
+        }
+
+        const payload = {
+            household_id: null,
+            full_name: member.full_name,
+            date_of_birth: member.date_of_birth,
+            place_of_birth: member.place_of_birth,
+            native_place: member.native_place,
+            ethnicity: member.ethnicity,
+            occupation: member.occupation,
+            id_number: member.id_number,
+            id_issue_date: member.id_issue_date,
+            id_issue_place: member.id_issue_place,
+            registration_date: member.registration_date,
+            relation_to_head: null,
+            gender: member.gender,
+            status: member.status,
+        };
+
+        const res = await fetch(`/api/residents/${member.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const json = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(json?.error || "Xóa thành viên khỏi hộ thất bại");
+
+        await loadEditMembersByCode(editForm.household_code);
+    }, [editForm, loadEditMembersByCode]);
 
     const openDelete = useCallback((row) => {
         setDeleteError(null);
@@ -402,6 +534,8 @@ function Household() {
                 membersLoading={editMembersLoading}
                 membersError={editMembersError}
                 onUpdateMemberRelation={updateMemberRelation}
+                onAddMemberToHousehold={addMemberToHousehold}
+                onRemoveMemberFromHousehold={removeMemberFromHousehold}
             />
 
             <HouseholdDeleteDialog
