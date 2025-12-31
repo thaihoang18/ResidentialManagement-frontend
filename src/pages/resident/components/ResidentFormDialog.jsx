@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toLocalYmd } from "@/lib/date";
 
 export default function ResidentFormDialog({ open, onClose, onSaved, initialData }) {
   const [form, setForm] = useState({
@@ -71,7 +72,12 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
 
   useEffect(() => {
     if (initialData) {
-      setForm({ ...initialData });
+      // Normalize date fields to yyyy-mm-dd in local time to avoid off-by-one when backend returns ISO timestamps.
+      setForm({
+        ...initialData,
+        date_of_birth: toLocalYmd(initialData.date_of_birth),
+        id_issue_date: toLocalYmd(initialData.id_issue_date),
+      });
       setDisplayDates({
         date_of_birth: initialData ? formatDateForDisplay(initialData.date_of_birth) : "",
         id_issue_date: initialData ? formatDateForDisplay(initialData.id_issue_date) : "",
