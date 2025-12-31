@@ -149,6 +149,7 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
             >
               <option value="Permanent">Thường trú</option>
               <option value="TemporaryStay">Tạm trú</option>
+              <option value="TemporaryLeave">Tạm vắng</option>
               <option value="Dead">Đã chết</option>
             </select>
 
