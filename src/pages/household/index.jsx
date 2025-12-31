@@ -37,6 +37,10 @@ function Household() {
     const [residentsLoading, setResidentsLoading] = useState(false);
     const [residentsError, setResidentsError] = useState(null);
 
+    const [editMembers, setEditMembers] = useState([]);
+    const [editMembersLoading, setEditMembersLoading] = useState(false);
+    const [editMembersError, setEditMembersError] = useState(null);
+
     const [splitOpen, setSplitOpen] = useState(false);
     const [splitSaving, setSplitSaving] = useState(false);
     const [splitError, setSplitError] = useState(null);
@@ -104,11 +108,67 @@ function Household() {
         });
         setEditOpen(true);
 
+        setEditMembers([]);
+        setEditMembersError(null);
+        if (row?.household_code) {
+            (async () => {
+                setEditMembersLoading(true);
+                try {
+                    const res = await fetch(`/api/households/${row.household_code}/residents`);
+                    const json = await res.json().catch(() => null);
+                    if (!res.ok) throw new Error(json?.error || "Lỗi tải danh sách nhân khẩu của hộ");
+                    const rows = Array.isArray(json?.data) ? json.data : [];
+                    setEditMembers(rows);
+                } catch (e) {
+                    setEditMembersError(e?.message || "Có lỗi xảy ra");
+                    setEditMembers([]);
+                } finally {
+                    setEditMembersLoading(false);
+                }
+            })();
+        }
+
         // load residents for head search (when editing)
         if (!residentsLoading && residents.length === 0 && !residentsError) {
             loadResidents();
         }
     }, [loadResidents, residents.length, residentsError, residentsLoading]);
+
+    const updateMemberRelation = useCallback(async (member, nextRelationRaw) => {
+        if (!member?.id) throw new Error("Thiếu ID nhân khẩu");
+
+        const payload = {
+            household_id: member.household_id,
+            full_name: member.full_name,
+            date_of_birth: member.date_of_birth,
+            place_of_birth: member.place_of_birth,
+            native_place: member.native_place,
+            ethnicity: member.ethnicity,
+            occupation: member.occupation,
+            id_number: member.id_number,
+            id_issue_date: member.id_issue_date,
+            id_issue_place: member.id_issue_place,
+            registration_date: member.registration_date,
+            relation_to_head: nextRelationRaw ? nextRelationRaw : null,
+            gender: member.gender,
+            status: member.status,
+        };
+
+        const res = await fetch(`/api/residents/${member.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const json = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(json?.error || "Cập nhật quan hệ thất bại");
+
+        setEditMembers((prev) =>
+            Array.isArray(prev)
+                ? prev.map((m) => (Number(m?.id) === Number(member.id) ? { ...m, relation_to_head: payload.relation_to_head } : m))
+                : prev
+        );
+    }, []);
 
     const openDelete = useCallback((row) => {
         setDeleteError(null);
@@ -338,6 +398,10 @@ function Household() {
                 residents={residents}
                 residentsLoading={residentsLoading}
                 residentsError={residentsError}
+                members={editMembers}
+                membersLoading={editMembersLoading}
+                membersError={editMembersError}
+                onUpdateMemberRelation={updateMemberRelation}
             />
 
             <HouseholdDeleteDialog
