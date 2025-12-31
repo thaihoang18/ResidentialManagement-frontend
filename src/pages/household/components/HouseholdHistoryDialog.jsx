@@ -60,6 +60,28 @@ function viChangeType(type) {
   }
 }
 
+function moveDirectionLabel(row, householdId) {
+  const hid = Number(householdId);
+  if (Number.isNaN(hid)) return null;
+  const before = row?.household_id_before === null || row?.household_id_before === undefined
+    ? null
+    : Number(row.household_id_before);
+  const after = row?.household_id_after === null || row?.household_id_after === undefined
+    ? null
+    : Number(row.household_id_after);
+
+  if (after === hid && before !== hid) return "Thêm vào hộ";
+  if (before === hid && after !== hid) return "Xóa khỏi hộ";
+  return null;
+}
+
+function viChangeTypeForRow(row, householdId) {
+  if (row?.change_type === "MOVE_HOUSEHOLD") {
+    return moveDirectionLabel(row, householdId) || "Chuyển hộ";
+  }
+  return viChangeType(row?.change_type);
+}
+
 function viResidentStatus(value) {
   if (value === null || value === undefined || value === "") return "-";
   const s = String(value);
@@ -84,6 +106,16 @@ function summarizeChange(row) {
     return "Đăng ký tạm vắng";
   }
   return type;
+}
+
+function summarizeChangeForRow(row, householdId) {
+  if (row?.change_type === "MOVE_HOUSEHOLD") {
+    const dir = moveDirectionLabel(row, householdId);
+    if (dir === "Thêm vào hộ") return "Thêm nhân khẩu vào hộ";
+    if (dir === "Xóa khỏi hộ") return "Xóa nhân khẩu khỏi hộ";
+    return "Chuyển hộ";
+  }
+  return summarizeChange(row);
 }
 
 function householdAddress(h) {
@@ -361,9 +393,9 @@ export default function HouseholdHistoryDialog({ open, onOpenChange, household }
             .join(" ")
         : "";
       const haystack = [
-        viChangeType(r?.change_type),
+        viChangeTypeForRow(r, household?.id),
         r?.change_type,
-        summarizeChange(r),
+        summarizeChangeForRow(r, household?.id),
         r?.resident_name,
         r?.id_number,
         r?.note,
@@ -433,7 +465,7 @@ export default function HouseholdHistoryDialog({ open, onOpenChange, household }
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div className="flex flex-col gap-1">
                           <div className="text-sm text-muted-foreground">{formatDateTime(r?.change_date)}</div>
-                          <div className="text-base font-semibold">{summarizeChange(r)}</div>
+                          <div className="text-base font-semibold">{summarizeChangeForRow(r, household?.id)}</div>
                           {r?.change_type === "HEAD_CHANGED" ? null : (
                             <div className="text-sm text-muted-foreground">
                               Nhân khẩu: <span className="font-medium text-foreground">{r?.resident_name || "-"}</span>
@@ -443,7 +475,7 @@ export default function HouseholdHistoryDialog({ open, onOpenChange, household }
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Badge variant={badgeVariant(r?.change_type)}>{viChangeType(r?.change_type)}</Badge>
+                          <Badge variant={badgeVariant(r?.change_type)}>{viChangeTypeForRow(r, household?.id)}</Badge>
                         </div>
                       </div>
 
