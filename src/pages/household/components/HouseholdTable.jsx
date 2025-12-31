@@ -2,12 +2,16 @@ import React, { useMemo, useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Edit2, History, Split, Trash2 } from "lucide-react";
+import { Edit2, Eye, History, Split, Trash2 } from "lucide-react";
 import HouseholdHistoryDialog from "./HouseholdHistoryDialog";
+import HouseholdDetailDialog from "./HouseholdDetailDialog";
 
 export default function HouseholdTable({ data, onEdit, onDelete, onSplit }) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyHousehold, setHistoryHousehold] = useState(null);
+
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailHousehold, setDetailHousehold] = useState(null);
 
   const columns = useMemo(
     () => [
@@ -43,6 +47,25 @@ export default function HouseholdTable({ data, onEdit, onDelete, onSplit }) {
         enableColumnFilter: false,
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => {
+                    setDetailHousehold(row.original);
+                    setDetailOpen(true);
+                  }}
+                  aria-label="Xem chi tiết"
+                  className="accent-text"
+                >
+                  <Eye />
+                  <span className="sr-only">Xem chi tiết</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent sideOffset={6}>Xem chi tiết</TooltipContent>
+            </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -139,6 +162,12 @@ export default function HouseholdTable({ data, onEdit, onDelete, onSplit }) {
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         household={historyHousehold}
+      />
+
+      <HouseholdDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        household={detailHousehold}
       />
     </>
   );

@@ -2,10 +2,10 @@ import React, { useMemo, useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Edit2, History, Trash2 } from "lucide-react";
+import { Edit2, History, Trash2, Eye } from "lucide-react";
 import ResidentHistoryDialog from "./ResidentHistoryDialog";
 
-export default function ResidentTable({ data = [], onEdit, onDelete, loading }) {
+export default function ResidentTable({ data = [], onEdit, onDelete, onView, loading }) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyResident, setHistoryResident] = useState(null);
 
@@ -16,13 +16,21 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
     const pad = (n) => String(n).padStart(2, "0");
     return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
   };
+  const statusLabel = (s) => {
+    const map = {
+      Permanent: "Thường trú",
+      TemporaryStay: "Tạm trú",
+      TemporaryLeave: "Tạm vắng",
+      Dead: "Đã chết",
+    };
+    return map[s] || s || "-";
+  };
   const columns = useMemo(
     () => [
       { accessorKey: "id", header: "ID", cell: ({ row }) => row.original.id },
       { accessorKey: "full_name", header: "Họ và tên", cell: ({ row }) => {
         const r = row.original;
         const idIssueDate = formatDate(r.id_issue_date);
-        const regDate = formatDate(r.registration_date);
         return (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -32,7 +40,6 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
               <div>Quê quán: {r.native_place || "-"}</div>
               <div>Ngày cấp CCCD: {idIssueDate}</div>
               <div>Nơi cấp CCCD: {r.id_issue_place || "-"}</div>
-              <div>Ngày đăng ký thường trú: {regDate}</div>
             </TooltipContent>
           </Tooltip>
         );
@@ -43,8 +50,8 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
       { accessorKey: "ethnicity", header: "Dân tộc" },
       { accessorKey: "occupation", header: "Nghề nghiệp" },
       { accessorKey: "id_number", header: "Số CMND/CCCD" },
-      { accessorKey: "household_id", header: "STT hộ khẩu thường trú" },
       { accessorKey: "relation_to_head", header: "Quan hệ" },
+      { accessorKey: "status", header: "Trạng thái", cell: ({ row }) => statusLabel(row.original.status) },
       { id: "actions", header: () => <div className="text-right">Thao tác</div>, enableSorting: false, enableGlobalFilter: false, enableColumnFilter: false, cell: ({ row }) => (
         <div className="flex items-center justify-end gap-2">
           <Tooltip>
@@ -64,6 +71,22 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
               </Button>
             </TooltipTrigger>
             <TooltipContent sideOffset={6}>Lịch sử</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => onView && onView(row.original)}
+                aria-label="Xem"
+                className="accent-text"
+              >
+                <Eye />
+                <span className="sr-only">Xem</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent sideOffset={6}>Xem</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -100,7 +123,7 @@ export default function ResidentTable({ data = [], onEdit, onDelete, loading }) 
         </div>
       )},
     ],
-    [onEdit, onDelete]
+    [onEdit, onDelete, onView]
   );
 
   return (

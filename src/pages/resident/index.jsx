@@ -3,6 +3,7 @@ import ResidentHeader from "./components/ResidentHeader";
 import ResidentTable from "./components/ResidentTable";
 import ResidentFormDialog from "./components/ResidentFormDialog";
 import ResidentDeleteDialog from "./components/ResidentDeleteDialog";
+import ResidentViewDialog from "./components/ResidentViewDialog";
 
 export default function ResidentPage() {
   const [residents, setResidents] = useState([]);
@@ -10,6 +11,8 @@ export default function ResidentPage() {
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [viewTarget, setViewTarget] = useState(null);
+  const [viewOpen, setViewOpen] = useState(false);
 
   const fetchResidents = async () => {
     setLoading(true);
@@ -31,6 +34,11 @@ export default function ResidentPage() {
   const handleCreate = () => {
     setEditTarget(null);
     setShowForm(true);
+  };
+
+  const handleView = (row) => {
+    setViewTarget(row);
+    setViewOpen(true);
   };
 
   const handleEdit = (row) => {
@@ -59,6 +67,7 @@ export default function ResidentPage() {
         data={residents}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onView={handleView}
         loading={loading}
       />
 
@@ -73,6 +82,12 @@ export default function ResidentPage() {
         target={deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onDeleted={handleDeleted}
+      />
+
+      <ResidentViewDialog
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+        resident={viewTarget}
       />
     </div>
   );
