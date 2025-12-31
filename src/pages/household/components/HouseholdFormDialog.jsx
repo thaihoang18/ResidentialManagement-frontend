@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Check, Lock, Pencil, X } from "lucide-react";
+import { Check, Lock, Pencil, Trash2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,8 @@ export default function HouseholdFormDialog({
   membersLoading = false,
   membersError = null,
   onUpdateMemberRelation,
+  onAddMemberToHousehold,
+  onRemoveMemberFromHousehold,
 }) {
   const ALLOWED_RELATIONS = [
     "Vợ",
@@ -91,15 +93,35 @@ export default function HouseholdFormDialog({
   const [relationSaving, setRelationSaving] = useState(false);
   const [relationError, setRelationError] = useState(null);
 
+  const [addMemberQuery, setAddMemberQuery] = useState("");
+  const [addMemberSelectedId, setAddMemberSelectedId] = useState(null);
+  const [addMemberRelation, setAddMemberRelation] = useState("");
+  const [addMemberSaving, setAddMemberSaving] = useState(false);
+  const [addMemberError, setAddMemberError] = useState(null);
+
+  const [removingMemberId, setRemovingMemberId] = useState(null);
+  const [removeSaving, setRemoveSaving] = useState(false);
+  const [removeError, setRemoveError] = useState(null);
+
+  function normalizeVi(s) {
+    return String(s || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d")
+      .trim();
+  }
+
   const filteredResidents = useMemo(() => {
     if (!enableHeadSearch) return [];
-    const q = headQuery.trim().toLowerCase();
+    const q = normalizeVi(headQuery);
     if (!q) return [];
     return residents
       .filter((r) => {
-        const name = String(r?.full_name || "").toLowerCase();
+        const name = normalizeVi(r?.full_name);
         const id = String(r?.id || "");
-        return name.includes(q) || id.includes(q);
+        const cccd = String(r?.id_number || "");
+        return name.includes(q) || id.includes(q) || cccd.includes(q);
       })
       .slice(0, 8);
   }, [enableHeadSearch, headQuery, residents]);
@@ -128,6 +150,16 @@ export default function HouseholdFormDialog({
       setRelationDraft("");
       setRelationSaving(false);
       setRelationError(null);
+
+      setAddMemberQuery("");
+      setAddMemberSelectedId(null);
+      setAddMemberRelation("");
+      setAddMemberSaving(false);
+      setAddMemberError(null);
+
+      setRemovingMemberId(null);
+      setRemoveSaving(false);
+      setRemoveError(null);
     }
   }, [open]);
 
@@ -135,6 +167,58 @@ export default function HouseholdFormDialog({
     const n = Number(form?.head_id);
     return Number.isNaN(n) ? null : n;
   }, [form?.head_id]);
+
+  const addMemberCandidates = useMemo(() => {
+    const q = normalizeVi(addMemberQuery);
+    if (!q) return [];
+
+    const existingIds = new Set((Array.isArray(members) ? members : []).map((m) => Number(m?.id)));
+    return (Array.isArray(residents) ? residents : [])
+      .filter((r) => {
+        const idNum = Number(r?.id);
+        if (!Number.isNaN(idNum) && existingIds.has(idNum)) return false;
+        const name = normalizeVi(r?.full_name);
+        const id = String(r?.id || "");
+        const cccd = String(r?.id_number || "");
+        return name.includes(q) || id.includes(q) || cccd.includes(q);
+      })
+      .slice(0, 8);
+  }, [addMemberQuery, members, residents]);
+
+  async function removeMember(member) {
+    if (typeof onRemoveMemberFromHousehold !== "function") return;
+    if (!member?.id) return;
+    setRemoveSaving(true);
+    setRemoveError(null);
+    try {
+      await onRemoveMemberFromHousehold(member);
+      setRemovingMemberId(null);
+    } catch (e) {
+      setRemoveError(e?.message || "Xóa thành viên khỏi hộ thất bại");
+    } finally {
+      setRemoveSaving(false);
+    }
+  }
+
+  async function addMember() {
+    if (typeof onAddMemberToHousehold !== "function") return;
+    if (!addMemberSelectedId) {
+      setAddMemberError("Vui lòng chọn nhân khẩu để thêm vào hộ");
+      return;
+    }
+    setAddMemberSaving(true);
+    setAddMemberError(null);
+    try {
+      await onAddMemberToHousehold(addMemberSelectedId, addMemberRelation);
+      setAddMemberQuery("");
+      setAddMemberSelectedId(null);
+      setAddMemberRelation("");
+    } catch (e) {
+      setAddMemberError(e?.message || "Thêm thành viên thất bại");
+    } finally {
+      setAddMemberSaving(false);
+    }
+  }
 
   async function saveRelation(member) {
     if (!member?.id) return;
@@ -205,6 +289,9 @@ export default function HouseholdFormDialog({
                   value={headQuery}
                   onChange={(e) => setHeadQuery(e.target.value)}
                   placeholder="Gõ tên hoặc ID để tìm..."
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") e.preventDefault();
+                  }}
                 />
 
                 {residentsError ? (
@@ -296,6 +383,104 @@ export default function HouseholdFormDialog({
 
                 {membersError ? <div className="text-sm text-destructive">{membersError}</div> : null}
                 {relationError ? <div className="text-sm text-destructive">{relationError}</div> : null}
+                {addMemberError ? <div className="text-sm text-destructive">{addMemberError}</div> : null}
+                {removeError ? <div className="text-sm text-destructive">{removeError}</div> : null}
+
+                <div className="rounded-md border p-3 space-y-2">
+                  <div className="text-sm font-medium">Thêm thành viên</div>
+                  <Input
+                    value={addMemberQuery}
+                    onChange={(e) => {
+                      setAddMemberQuery(e.target.value);
+                      setAddMemberSelectedId(null);
+                      setAddMemberError(null);
+                    }}
+                    placeholder="Gõ tên / CCCD / ID để tìm nhân khẩu..."
+                    disabled={residentsLoading}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.preventDefault();
+                    }}
+                  />
+
+                  {residentsError ? <div className="text-sm text-destructive">{residentsError}</div> : null}
+
+                  {residentsLoading ? (
+                    <div className="text-sm text-muted-foreground">Đang tải danh sách nhân khẩu...</div>
+                  ) : addMemberQuery.trim() ? (
+                    <div className="rounded-md border divide-y max-h-40 overflow-y-auto">
+                      {addMemberCandidates.length ? (
+                        addMemberCandidates.map((r) => (
+                          <Tooltip key={r.id}>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-muted/50"
+                                onClick={() => {
+                                  setAddMemberSelectedId(String(r.id));
+                                  setAddMemberQuery(r.full_name || "");
+                                  setAddMemberError(null);
+                                }}
+                              >
+                                <div className="font-medium truncate">{r.full_name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {r?.id_number ? `CCCD: ${r.id_number}` : "CCCD: -"}
+                                </div>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent sideOffset={6}>{renderResidentDetails(r)}</TooltipContent>
+                          </Tooltip>
+                        ))
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-muted-foreground">Không tìm thấy nhân khẩu.</div>
+                      )}
+                    </div>
+                  ) : null}
+
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <select
+                      value={addMemberRelation}
+                      onChange={(e) => setAddMemberRelation(e.target.value)}
+                      className="border-input dark:bg-input/30 h-9 min-w-0 w-full sm:max-w-[20rem] rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm focus-visible:border-ring focus-visible:ring-ring/20 focus-visible:ring-[2px]"
+                      aria-label="Chọn quan hệ của thành viên với chủ hộ"
+                      disabled={addMemberSaving}
+                    >
+                      <option value="">Chọn quan hệ (tuỳ chọn)...</option>
+                      {ALLOWED_RELATIONS.map((rel) => (
+                        <option key={rel} value={rel}>
+                          {rel}
+                        </option>
+                      ))}
+                    </select>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        className="accent-btn action-btn"
+                        disabled={addMemberSaving || !addMemberSelectedId}
+                        onClick={addMember}
+                      >
+                        Thêm
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="accent-outline action-btn"
+                        disabled={addMemberSaving}
+                        onClick={() => {
+                          setAddMemberQuery("");
+                          setAddMemberSelectedId(null);
+                          setAddMemberRelation("");
+                          setAddMemberError(null);
+                        }}
+                        aria-label="Xóa lựa chọn thêm thành viên"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
 
                 {membersLoading ? (
                   <div className="text-sm text-muted-foreground">Đang tải danh sách thành viên...</div>
@@ -305,6 +490,7 @@ export default function HouseholdFormDialog({
                       members.map((m) => {
                         const isHead = headIdNum !== null && Number(m?.id) === headIdNum;
                         const isEditing = Number(m?.id) === Number(editingMemberId);
+                        const isRemoving = Number(m?.id) === Number(removingMemberId);
                         const relationText = isHead ? "Chủ hộ" : (m?.relation_to_head || "-");
 
                         return (
@@ -335,6 +521,37 @@ export default function HouseholdFormDialog({
                                     </TooltipTrigger>
                                     <TooltipContent sideOffset={6}>Không chỉnh sửa chủ hộ</TooltipContent>
                                   </Tooltip>
+                                ) : isRemoving ? (
+                                  <div className="flex items-center gap-2 w-full min-w-0 flex-nowrap">
+                                    <div className="text-sm text-muted-foreground min-w-0 flex-1 truncate">
+                                      Đưa về trạng thái chưa thuộc hộ nào?
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      size="icon"
+                                      className="accent-btn action-btn shrink-0"
+                                      disabled={removeSaving}
+                                      onClick={() => removeMember(m)}
+                                      aria-label={removeSaving ? "Đang xóa" : "Xác nhận xóa"}
+                                    >
+                                      <Check className="h-4 w-4" />
+                                    </Button>
+
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      className="accent-outline action-btn shrink-0"
+                                      disabled={removeSaving}
+                                      onClick={() => {
+                                        setRemovingMemberId(null);
+                                        setRemoveError(null);
+                                      }}
+                                      aria-label="Hủy xóa"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 ) : isEditing ? (
                                   <div className="flex items-center gap-2 w-full min-w-0 flex-nowrap">
                                     <select
@@ -378,24 +595,49 @@ export default function HouseholdFormDialog({
                                     </Button>
                                   </div>
                                 ) : (
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="icon"
-                                        className="accent-outline action-btn"
-                                        onClick={() => {
-                                          setEditingMemberId(m?.id);
-                                          setRelationDraft(String(m?.relation_to_head || ""));
-                                          setRelationError(null);
-                                        }}
-                                        aria-label="Chỉnh sửa quan hệ với chủ hộ">
-                                        <Pencil className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent sideOffset={6}>Chỉnh sửa quan hệ</TooltipContent>
-                                  </Tooltip>
+                                  <>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="icon"
+                                          className="accent-outline action-btn"
+                                          onClick={() => {
+                                            setEditingMemberId(m?.id);
+                                            setRelationDraft(String(m?.relation_to_head || ""));
+                                            setRelationError(null);
+                                            setRemoveError(null);
+                                            setRemovingMemberId(null);
+                                          }}
+                                          aria-label="Chỉnh sửa quan hệ với chủ hộ">
+                                          <Pencil className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent sideOffset={6}>Chỉnh sửa quan hệ</TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          size="icon"
+                                          className="text-destructive hover:text-destructive"
+                                          onClick={() => {
+                                            setRemovingMemberId(m?.id);
+                                            setRemoveError(null);
+                                            setEditingMemberId(null);
+                                            setRelationDraft("");
+                                            setRelationError(null);
+                                          }}
+                                          aria-label="Xóa thành viên khỏi hộ">
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent sideOffset={6}>Xóa khỏi hộ (đưa về chưa thuộc hộ)</TooltipContent>
+                                    </Tooltip>
+                                  </>
                                 )}
                               </div>
                             </div>
