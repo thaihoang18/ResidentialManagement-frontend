@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Crown } from 'lucide-react';
 
 const mixWithWhite = (color, pct) => `color-mix(in srgb, ${color} ${pct}%, white)`;
@@ -613,17 +620,20 @@ export default function StatisticsChart() {
             <CardHeader className="py-3 lg:py-2">
               <div className="flex items-center justify-between gap-3">
                 <CardTitle className="text-base text-slate-800">Tần suất tham gia</CardTitle>
-                <select
-                  id="frequencyMonthFilter"
-                  value={selectedFrequencyMonth}
-                  onChange={(e) => setSelectedFrequencyMonth(e.target.value)}
-                  className="px-2 py-1 border border-slate-300 rounded-md text-xs text-slate-700 bg-white hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                <Select
+                  value={availableMonths.length ? (selectedFrequencyMonth || undefined) : undefined}
+                  onValueChange={setSelectedFrequencyMonth}
                   disabled={availableMonths.length === 0}
                 >
-                  {availableMonths.length === 0 ? (
-                    <option value="">Đang tải...</option>
-                  ) : (
-                    availableMonths.map((monthKey) => {
+                  <SelectTrigger
+                    id="frequencyMonthFilter"
+                    className="h-8 w-auto px-2 text-xs"
+                    aria-label="Chọn tháng (tần suất tham gia)"
+                  >
+                    <SelectValue placeholder={availableMonths.length === 0 ? "Đang tải..." : "Chọn tháng"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableMonths.map((monthKey) => {
                       const [year, month] = monthKey.split("-");
                       const monthNames = [
                         "Tháng 1",
@@ -639,14 +649,15 @@ export default function StatisticsChart() {
                         "Tháng 11",
                         "Tháng 12",
                       ];
+
                       return (
-                        <option key={monthKey} value={monthKey}>
+                        <SelectItem key={monthKey} value={monthKey}>
                           {monthNames[parseInt(month) - 1]} {year}
-                        </option>
+                        </SelectItem>
                       );
-                    })
-                  )}
-                </select>
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
               {frequencyStats && (
                 <p className="text-xs text-slate-600">
@@ -755,17 +766,20 @@ export default function StatisticsChart() {
                     </p>
                   )}
                 </div>
-                <select
-                  id="monthFilter"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="px-2 py-1 border border-slate-300 rounded-md text-xs text-slate-700 bg-white hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
+                <Select
+                  value={availableMonths.length ? (selectedMonth || undefined) : undefined}
+                  onValueChange={setSelectedMonth}
                   disabled={availableMonths.length === 0}
                 >
-                  {availableMonths.length === 0 ? (
-                    <option value="">Đang tải...</option>
-                  ) : (
-                    availableMonths.map((monthKey) => {
+                  <SelectTrigger
+                    id="monthFilter"
+                    className="h-8 w-auto px-2 text-xs"
+                    aria-label="Chọn tháng (tham gia họp)"
+                  >
+                    <SelectValue placeholder={availableMonths.length === 0 ? "Đang tải..." : "Chọn tháng"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableMonths.map((monthKey) => {
                       const [year, month] = monthKey.split("-");
                       const monthNames = [
                         "Tháng 1",
@@ -781,14 +795,15 @@ export default function StatisticsChart() {
                         "Tháng 11",
                         "Tháng 12",
                       ];
+
                       return (
-                        <option key={monthKey} value={monthKey}>
+                        <SelectItem key={monthKey} value={monthKey}>
                           {monthNames[parseInt(month) - 1]} {year}
-                        </option>
+                        </SelectItem>
                       );
-                    })
-                  )}
-                </select>
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
             <CardContent className="flex-1 min-h-0 px-4">
@@ -876,18 +891,18 @@ export default function StatisticsChart() {
                   <label htmlFor="year-select" className="text-xs text-slate-600 font-medium">
                     Năm:
                   </label>
-                  <select
-                    id="year-select"
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="px-2 py-1 border border-slate-300 rounded-md text-xs text-slate-700 bg-white hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
-                  >
-                    {availableYears.map((year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={selectedYear || undefined} onValueChange={setSelectedYear}>
+                    <SelectTrigger id="year-select" className="h-8 w-auto px-2 text-xs" aria-label="Chọn năm">
+                      <SelectValue placeholder="Chọn năm" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableYears.map((year) => (
+                        <SelectItem key={year} value={String(year)}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardHeader>

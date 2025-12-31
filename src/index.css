@@ -788,6 +788,7 @@ body::after {
 [data-slot="dialog-content"],
 [data-slot="sheet-content"],
 [data-slot="popover-content"],
+[data-slot="select-content"],
 [data-slot="table-container"],
 .glass-panel {
   border-color: var(--glass-border) !important;
@@ -817,6 +818,7 @@ body::after {
 [data-slot="dialog-content"]::before,
 [data-slot="sheet-content"]::before,
 [data-slot="popover-content"]::before,
+[data-slot="select-content"]::before,
 [data-slot="table-container"]::before,
 .glass-panel::before {
   content: "";
@@ -833,7 +835,8 @@ body::after {
 /* Popups should look less transparent than cards/tables */
 [data-slot="dialog-content"]::before,
 [data-slot="sheet-content"]::before,
-[data-slot="popover-content"]::before {
+[data-slot="popover-content"]::before,
+[data-slot="select-content"]::before {
   background: var(--glass-surface), var(--popup-glass-bg);
 }
 
@@ -841,6 +844,7 @@ body::after {
 [data-slot="dialog-content"]::after,
 [data-slot="sheet-content"]::after,
 [data-slot="popover-content"]::after,
+[data-slot="select-content"]::after,
 [data-slot="table-container"]::after,
 .glass-panel::after {
   content: "";
@@ -855,7 +859,8 @@ body::after {
 
 [data-slot="dialog-content"]::after,
 [data-slot="sheet-content"]::after,
-[data-slot="popover-content"]::after {
+[data-slot="popover-content"]::after,
+[data-slot="select-content"]::after {
   opacity: var(--popup-glass-highlight-opacity);
 }
 

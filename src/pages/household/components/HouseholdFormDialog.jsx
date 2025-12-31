@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Check, Lock, Pencil, Trash2, X } from "lucide-react";
 import {
@@ -437,20 +444,26 @@ export default function HouseholdFormDialog({
                   ) : null}
 
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <select
-                      value={addMemberRelation}
-                      onChange={(e) => setAddMemberRelation(e.target.value)}
-                      className="border-input dark:bg-input/30 h-9 min-w-0 w-full sm:max-w-[20rem] rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm focus-visible:border-ring focus-visible:ring-ring/20 focus-visible:ring-[2px]"
-                      aria-label="Chọn quan hệ của thành viên với chủ hộ"
+                    <Select
+                      value={addMemberRelation || undefined}
+                      onValueChange={(value) => setAddMemberRelation(value === "__none__" ? "" : value)}
                       disabled={addMemberSaving}
                     >
-                      <option value="">Chọn quan hệ (tuỳ chọn)...</option>
-                      {ALLOWED_RELATIONS.map((rel) => (
-                        <option key={rel} value={rel}>
-                          {rel}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger
+                        className="border-input dark:bg-input/30 h-9 min-w-0 w-full sm:max-w-[20rem]"
+                        aria-label="Chọn quan hệ của thành viên với chủ hộ"
+                      >
+                        <SelectValue placeholder="Chọn quan hệ (tuỳ chọn)..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Chọn quan hệ (tuỳ chọn)...</SelectItem>
+                        {ALLOWED_RELATIONS.map((rel) => (
+                          <SelectItem key={rel} value={rel}>
+                            {rel}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
                     <div className="flex items-center gap-2">
                       <Button
@@ -554,22 +567,28 @@ export default function HouseholdFormDialog({
                                   </div>
                                 ) : isEditing ? (
                                   <div className="flex items-center gap-2 w-full min-w-0 flex-nowrap">
-                                    <select
-                                      value={relationDraft}
-                                      onChange={(e) => setRelationDraft(e.target.value)}
-                                      className="border-input dark:bg-input/30 h-9 min-w-0 flex-1 sm:flex-[0_1_16rem] rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm focus-visible:border-ring focus-visible:ring-ring/20 focus-visible:ring-[2px]"
-                                      aria-label="Chọn quan hệ với chủ hộ"
+                                    <Select
+                                      value={relationDraft || undefined}
+                                      onValueChange={(value) => setRelationDraft(value === "__none__" ? "" : value)}
                                     >
-                                      <option value="">Chọn quan hệ...</option>
-                                      {!ALLOWED_RELATIONS.includes(relationDraft) && relationDraft ? (
-                                        <option value={relationDraft}>{relationDraft}</option>
-                                      ) : null}
-                                      {ALLOWED_RELATIONS.map((rel) => (
-                                        <option key={rel} value={rel}>
-                                          {rel}
-                                        </option>
-                                      ))}
-                                    </select>
+                                      <SelectTrigger
+                                        className="border-input dark:bg-input/30 h-9 min-w-0 flex-1 sm:flex-[0_1_16rem]"
+                                        aria-label="Chọn quan hệ với chủ hộ"
+                                      >
+                                        <SelectValue placeholder="Chọn quan hệ..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="__none__">Chọn quan hệ...</SelectItem>
+                                        {!ALLOWED_RELATIONS.includes(relationDraft) && relationDraft ? (
+                                          <SelectItem value={relationDraft}>{relationDraft}</SelectItem>
+                                        ) : null}
+                                        {ALLOWED_RELATIONS.map((rel) => (
+                                          <SelectItem key={rel} value={rel}>
+                                            {rel}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
                                     <Button
                                       type="button"
                                       size="icon"

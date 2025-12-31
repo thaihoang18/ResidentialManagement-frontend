@@ -2,7 +2,17 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+<<<<<<< HEAD
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+=======
 import { DateField } from "@/components/ui/date-field";
+>>>>>>> 18954c9e9f6f05ffe4102f0835652ea89419a97b
 import { toLocalYmd } from "@/lib/date";
 
 export default function ResidentFormDialog({ open, onClose, onSaved, initialData }) {
@@ -88,9 +98,6 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
     }
   };
 
-  const selectClassName =
-    "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
@@ -115,11 +122,18 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Giới tính</label>
-                <select name="gender" value={form.gender || ""} onChange={handleChange} className={selectClassName}>
-                  <option value="">Chọn giới tính</option>
-                  <option value="Nam">Nam</option>
-                  <option value="Nữ">Nữ</option>
-                </select>
+                <Select
+                  value={form.gender || undefined}
+                  onValueChange={(v) => handleChange({ target: { name: "gender", value: v } })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn giới tính" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Nam">Nam</SelectItem>
+                    <SelectItem value="Nữ">Nữ</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -137,13 +151,20 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Trạng thái</label>
-                <select name="status" value={form.status || ""} onChange={handleChange} className={selectClassName}>
-                  <option value="">Chọn trạng thái</option>
-                  <option value="Permanent">Thường trú</option>
-                  <option value="TemporaryStay">Tạm trú</option>
-                  <option value="TemporaryLeave">Tạm vắng</option>
-                  <option value="Dead">Đã chết</option>
-                </select>
+                <Select
+                  value={form.status || undefined}
+                  onValueChange={(v) => handleChange({ target: { name: "status", value: v } })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Permanent">Thường trú</SelectItem>
+                    <SelectItem value="TemporaryStay">Tạm trú</SelectItem>
+                    <SelectItem value="TemporaryLeave">Tạm vắng</SelectItem>
+                    <SelectItem value="Dead">Đã chết</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

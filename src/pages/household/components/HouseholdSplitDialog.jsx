@@ -2,6 +2,13 @@ import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -238,23 +245,30 @@ export default function HouseholdSplitDialog({
                             String(r.id) === String(headId) ? (
                               <span className="text-sm">Chủ hộ</span>
                             ) : (
-                              <select
-                                value={relationsById[r.id] ?? ""}
-                                onChange={(e) =>
+                              <Select
+                                value={relationsById[r.id] || undefined}
+                                onValueChange={(value) =>
                                   setRelationsById((prev) => ({
                                     ...prev,
-                                    [r.id]: e.target.value,
+                                    [r.id]: value === "__none__" ? "" : value,
                                   }))
                                 }
-                                className="border-input bg-background text-foreground h-9 w-full rounded-md border px-3 text-sm shadow-xs"
                               >
-                                <option value="">Chọn quan hệ</option>
-                                {RELATION_OPTIONS.map((opt) => (
-                                  <option key={opt} value={opt}>
-                                    {opt}
-                                  </option>
-                                ))}
-                              </select>
+                                <SelectTrigger
+                                  className="border-input bg-background text-foreground h-9 w-full"
+                                  aria-label="Chọn quan hệ với chủ hộ"
+                                >
+                                  <SelectValue placeholder="Chọn quan hệ" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="__none__">Chọn quan hệ</SelectItem>
+                                  {RELATION_OPTIONS.map((opt) => (
+                                    <SelectItem key={opt} value={opt}>
+                                      {opt}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             )
                           ) : (
                             <span className="text-sm text-muted-foreground">-</span>
@@ -280,28 +294,36 @@ export default function HouseholdSplitDialog({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1">
               <label className="text-sm font-medium">Chủ hộ mới (tuỳ chọn)</label>
-              <select
-                value={headId}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setHeadId(v);
-                  if (v) {
+              <Select
+                value={headId || undefined}
+                onValueChange={(v) => {
+                  const nextValue = v === "__none__" ? "" : v;
+                  setHeadId(nextValue);
+                  if (nextValue) {
                     setRelationsById((prev) => {
                       const next = { ...prev };
-                      delete next[Number(v)];
+                      delete next[Number(nextValue)];
                       return next;
                     });
                   }
                 }}
-                className="border-input bg-background text-foreground h-9 rounded-md border px-3 text-sm shadow-xs"
-                disabled={selectedResidents.length === 0}>
-                <option value="">Không chọn</option>
-                {selectedResidents.map((r) => (
-                  <option key={r.id} value={String(r.id)}>
-                    {r.full_name}
-                  </option>
-                ))}
-              </select>
+                disabled={selectedResidents.length === 0}
+              >
+                <SelectTrigger
+                  className="border-input bg-background text-foreground h-9"
+                  aria-label="Chọn chủ hộ mới (tuỳ chọn)"
+                >
+                  <SelectValue placeholder="Không chọn" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Không chọn</SelectItem>
+                  {selectedResidents.map((r) => (
+                    <SelectItem key={r.id} value={String(r.id)}>
+                      {r.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <div className="text-xs text-muted-foreground">
                 Nếu chọn, chủ hộ phải nằm trong danh sách nhân khẩu đã chọn.
               </div>
