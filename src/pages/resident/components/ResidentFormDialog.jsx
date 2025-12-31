@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DatePicker } from "@/components/ui/date-picker";
 
 export default function ResidentFormDialog({ open, onClose, onSaved, initialData }) {
   const [form, setForm] = useState({
@@ -30,66 +29,43 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
 
   const pad = (n) => String(n).padStart(2, "0");
   const formatDateForDisplay = (value) => {
-    if (!value) return "-";
+    if (!value) return "";
     const d = new Date(value);
-    if (isNaN(d)) return "-";
-    const pad = (n) => String(n).padStart(2, "0");
+    if (isNaN(d)) return "";
     return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
   };
 
   const parseDisplayToISO = (str) => {
     if (!str) return "";
-    const s = String(str).trim();
     const dmY = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/;
     const ymd = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/;
     let m;
-    if ((m = s.match(dmY))) {
+    if ((m = str.match(dmY))) {
       const d = pad(m[1]);
       const mo = pad(m[2]);
       const y = m[3];
       return `${y}-${mo}-${d}`;
     }
-    if ((m = s.match(ymd))) {
+    if ((m = str.match(ymd))) {
       return `${m[1]}-${m[2]}-${m[3]}`;
     }
-    const parsed = new Date(s);
+    const parsed = new Date(str);
     if (!isNaN(parsed)) {
       return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`;
     }
     return "";
   };
 
-useEffect(() => {
-  if (!open) return;
-
-  if (initialData) {
-    setForm({ ...initialData });
+  useEffect(() => {
+    if (initialData) setForm({ ...initialData });
+    else setForm((s) => ({ ...s, household_id: s.household_id || "" }));
     setDisplayDates({
-      date_of_birth: formatDateForDisplay(initialData.date_of_birth),
-      id_issue_date: formatDateForDisplay(initialData.id_issue_date),
-      registration_date: formatDateForDisplay(initialData.registration_date),
+      date_of_birth: initialData ? formatDateForDisplay(initialData.date_of_birth) : "",
+      id_issue_date: initialData ? formatDateForDisplay(initialData.id_issue_date) : "",
+      registration_date: initialData ? formatDateForDisplay(initialData.registration_date) : "",
     });
-  } else {
-    setForm({
-      household_id: "",
-      full_name: "",
-      date_of_birth: "",
-      place_of_birth: "",
-      native_place: "",
-      ethnicity: "",
-      occupation: "",
-      id_number: "",
-      id_issue_date: "",
-      id_issue_place: "",
-      registration_date: "",
-      previous_address: "",
-      relation_to_head: "",
-      gender: "",
-      status: "",
-    });
-    setDisplayDates({ date_of_birth: "", id_issue_date: "", registration_date: "" });
-  }
-}, [open]);
+  }, [initialData]);
+
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -97,11 +73,11 @@ useEffect(() => {
     setDisplayDates((s) => ({ ...s, [name]: value }));
   };
 
-const handleDateBlur = (name, value) => {
-  const iso = parseDisplayToISO(value);
-  setForm((prev) => ({ ...prev, [name]: iso }));
-  setDisplayDates((prev) => ({ ...prev, [name]: formatDateForDisplay(iso) }));
-};
+  const handleDateBlur = (name, value) => {
+    const iso = parseDisplayToISO(value);
+    setForm((s) => ({ ...s, [name]: iso }));
+    setDisplayDates((s) => ({ ...s, [name]: formatDateForDisplay(iso) }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -151,64 +127,6 @@ const handleDateBlur = (name, value) => {
           <label>STT hộ khẩu:</label><Input name="household_id" placeholder="STT hộ khẩu" value={form.household_id || ""} onChange={handleChange} />
           <label>Ngày đăng ký thường trú:</label>
           <Input name="registration_date" type="text" placeholder="dd/mm/yyyy" value={displayDates.registration_date} onChange={(e) => handleDateChange("registration_date", e.target.value)} onBlur={(e) => handleDateBlur("registration_date", e.target.value)} />
-          {/* <label>Quan hệ:</label><Input name="relation_to_head" placeholder="Quan hệ" value={form.relation_to_head || ""} onChange={handleChange} /> */}
-          <label>Quan hệ:</label>
-            <select
-              name="relation_to_head"
-              value={form.relation_to_head || ""}
-              onChange={handleChange}
-            >
-            <option value="Chủ hộ">Chủ hộ</option>
-            <option value="Vợ">Vợ</option>
-            <option value="Chồng">Chồng</option>
-            <option value="Cha đẻ">Cha đẻ</option>
-            <option value="Mẹ đẻ">Mẹ đẻ</option>
-            <option value="Cha vợ">Cha vợ</option>
-            <option value="Mẹ vợ">Mẹ vợ</option>
-            <option value="Cha chồng">Cha chồng</option>
-            <option value="Mẹ chồng">Mẹ chồng</option>
-            <option value="Cha nuôi">Cha nuôi</option>
-            <option value="Mẹ nuôi">Mẹ nuôi</option>
-            <option value="Cha dượng">Cha dượng</option>
-            <option value="Mẹ kế">Mẹ kế</option>
-            <option value="Con đẻ">Con đẻ</option>
-            <option value="Con dâu">Con dâu</option>
-            <option value="Con rể">Con rể</option>
-            <option value="Con nuôi">Con nuôi</option>
-            <option value="Con riêng của vợ hoặc chồng">Con riêng của vợ hoặc chồng</option>
-            <option value="Ông nội">Ông nội</option>
-            <option value="Bà nội">Bà nội</option>
-            <option value="Ông ngoại">Ông ngoại</option>
-            <option value="Bà ngoại">Bà ngoại</option>
-            <option value="Anh ruột">Anh ruột</option>
-            <option value="Chị ruột">Chị ruột</option>
-            <option value="Em ruột">Em ruột</option>
-            <option value="Cháu ruột">Cháu ruột</option>
-            <option value="Anh, chị, em cùng cha khác mẹ">Anh, chị, em cùng cha khác mẹ</option>
-            <option value="Anh, chị, em cùng mẹ khác cha">Anh, chị, em cùng mẹ khác cha</option>
-            <option value="Anh rể">Anh rể</option>
-            <option value="Em rể">Em rể</option>
-            <option value="Chị dâu">Chị dâu</option>
-            <option value="Em dâu">Em dâu</option>
-            <option value="Cụ nội">Cụ nội</option>
-            <option value="Cụ ngoại">Cụ ngoại</option>
-            <option value="Cháu nội">Cháu nội</option>
-            <option value="Cháu ngoại">Cháu ngoại</option>
-            <option value="Bác ruột">Bác ruột</option>
-            <option value="Chú ruột">Chú ruột</option>
-            <option value="Cậu ruột">Cậu ruột</option>
-            <option value="Cô ruột">Cô ruột</option>
-            <option value="Dì ruột">Dì ruột</option>
-            <option value="Chắt ruột">Chắt ruột</option>
-            <option value="Người giám hộ">Người giám hộ</option>
-            <option value="Người được giám hộ">Người được giám hộ</option>
-            <option value="Ở nhờ">Ở nhờ</option>
-            <option value="Ở mượn">Ở mượn</option>
-            <option value="Ở thuê">Ở thuê</option>
-            <option value="Cùng ở nhờ">Cùng ở nhờ</option>
-            <option value="Cùng ở mượn">Cùng ở mượn</option>
-            <option value="Cùng ở thuê">Cùng ở thuê</option>
-            </select>
 
           <DialogFooter>
             <Button type="button" variant="outline" size="sm" className="bg-white accent-outline transition-transform hover:-translate-y-0.5" onClick={onClose}>
