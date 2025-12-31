@@ -25,6 +25,9 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
     id_issue_date: "",
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
   const emptyForm = {
     full_name: "",
     date_of_birth: "",
@@ -88,10 +91,13 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
     }
   }, [initialData, open]);
 
-
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setSubmitError("");
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleDateChange = (name, value) => {
+    setSubmitError("");
     setDisplayDates((s) => ({ ...s, [name]: value }));
   };
 
@@ -103,6 +109,14 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError("");
+
+    if (!String(form.full_name || "").trim()) {
+      setSubmitError("Vui lòng nhập họ và tên.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const method = initialData ? "PUT" : "POST";
       const url = initialData ? `/api/residents/${initialData.id}` : "/api/residents";
@@ -111,12 +125,19 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
       if (json.success) {
         onSaved();
       } else {
+        setSubmitError(json?.message || "Lưu thất bại. Vui lòng thử lại.");
         console.error(json);
       }
     } catch (err) {
+      setSubmitError("Không thể kết nối máy chủ. Vui lòng thử lại.");
       console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const selectClassName =
+    "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -125,45 +146,115 @@ export default function ResidentFormDialog({ open, onClose, onSaved, initialData
           <DialogTitle>{initialData ? "Sửa cư dân" : "Thêm cư dân"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-2 max-h-[70vh] overflow-y-auto pr-2">
-          <label>Họ và tên:</label><Input name="full_name" placeholder="" value={form.full_name || ""} onChange={handleChange} />
-          <label>Ngày sinh:</label>
-          <Input name="date_of_birth" type="text" placeholder="" value={displayDates.date_of_birth} onChange={(e) => handleDateChange("date_of_birth", e.target.value)} onBlur={(e) => handleDateBlur("date_of_birth", e.target.value)} />
-          <label>Nơi sinh:</label><Input name="place_of_birth" placeholder="" value={form.place_of_birth || ""} onChange={handleChange} />
-          <label>Quê quán:</label><Input name="native_place" placeholder="" value={form.native_place || ""} onChange={handleChange} />
-          <label>Giới tính:</label>
-            <select
-              name="gender"
-              value={form.gender || ""}
-              onChange={handleChange}
-            >
-              <option value="Nam">Nam</option>
-              <option value="Nữ">Nữ</option>
-            </select>
-          <label>Dân tộc:</label><Input name="ethnicity" placeholder="" value={form.ethnicity || ""} onChange={handleChange} />
-          <label>Nghề nghiệp:</label><Input name="occupation" placeholder="" value={form.occupation || ""} onChange={handleChange} />
-          <label>Số CMND/CCCD:</label><Input name="id_number" placeholder="" value={form.id_number || ""} onChange={handleChange} />
-          <label>Ngày cấp:</label>
-          <Input name="id_issue_date" type="text" placeholder="" value={displayDates.id_issue_date} onChange={(e) => handleDateChange("id_issue_date", e.target.value)} onBlur={(e) => handleDateBlur("id_issue_date", e.target.value)} />
-          <label>Nơi cấp:</label><Input name="id_issue_place" placeholder="" value={form.id_issue_place || ""} onChange={handleChange} />
-          
-          <label>Trạng thái:</label>
-            <select
-              name="status"
-              value={form.status || ""}
-              onChange={handleChange}
-            >
-              <option value="Permanent">Thường trú</option>
-              <option value="TemporaryStay">Tạm trú</option>
-              <option value="TemporaryLeave">Tạm vắng</option>
-              <option value="Dead">Đã chết</option>
-            </select>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="max-h-[70vh] overflow-y-auto pr-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Họ và tên <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  name="full_name"
+                  placeholder="Nguyễn Văn A"
+                  value={form.full_name || ""}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Giới tính</label>
+                <select name="gender" value={form.gender || ""} onChange={handleChange} className={selectClassName}>
+                  <option value="">Chọn giới tính</option>
+                  <option value="Nam">Nam</option>
+                  <option value="Nữ">Nữ</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Ngày sinh</label>
+                <Input
+                  name="date_of_birth"
+                  type="text"
+                  placeholder="DD/MM/YYYY"
+                  value={displayDates.date_of_birth}
+                  onChange={(e) => handleDateChange("date_of_birth", e.target.value)}
+                  onBlur={(e) => handleDateBlur("date_of_birth", e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Nhập theo định dạng dd/mm/yyyy.</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Trạng thái</label>
+                <select name="status" value={form.status || ""} onChange={handleChange} className={selectClassName}>
+                  <option value="">Chọn trạng thái</option>
+                  <option value="Permanent">Thường trú</option>
+                  <option value="TemporaryStay">Tạm trú</option>
+                  <option value="TemporaryLeave">Tạm vắng</option>
+                  <option value="Dead">Đã chết</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nơi sinh</label>
+                <Input name="place_of_birth" placeholder="" value={form.place_of_birth || ""} onChange={handleChange} />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Quê quán</label>
+                <Input name="native_place" placeholder="" value={form.native_place || ""} onChange={handleChange} />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Dân tộc</label>
+                <Input name="ethnicity" placeholder="" value={form.ethnicity || ""} onChange={handleChange} />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nghề nghiệp</label>
+                <Input name="occupation" placeholder="" value={form.occupation || ""} onChange={handleChange} />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Số CMND/CCCD</label>
+                <Input name="id_number" placeholder="" value={form.id_number || ""} onChange={handleChange} />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Ngày cấp</label>
+                <Input
+                  name="id_issue_date"
+                  type="text"
+                  placeholder="DD/MM/YYYY"
+                  value={displayDates.id_issue_date}
+                  onChange={(e) => handleDateChange("id_issue_date", e.target.value)}
+                  onBlur={(e) => handleDateBlur("id_issue_date", e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Nhập theo định dạng dd/mm/yyyy.</p>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium">Nơi cấp</label>
+                <Input name="id_issue_place" placeholder="" value={form.id_issue_place || ""} onChange={handleChange} />
+              </div>
+            </div>
+
+            {submitError ? <p className="mt-3 text-sm text-destructive">{submitError}</p> : null}
+          </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" size="sm" className="bg-white accent-outline transition-transform hover:-translate-y-0.5" onClick={onClose}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="bg-white accent-outline transition-transform hover:-translate-y-0.5"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Hủy
             </Button>
-            <Button type="submit" className="accent-btn transition-transform hover:-translate-y-0.5">Lưu</Button>
+            <Button type="submit" className="accent-btn transition-transform hover:-translate-y-0.5" disabled={isSubmitting}>
+              {isSubmitting ? "Đang lưu..." : "Lưu"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
