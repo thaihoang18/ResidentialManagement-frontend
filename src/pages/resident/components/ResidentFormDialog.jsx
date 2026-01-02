@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-<<<<<<< HEAD
+
 import {
   Select,
   SelectContent,
@@ -10,9 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-=======
 import { DateField } from "@/components/ui/date-field";
->>>>>>> 18954c9e9f6f05ffe4102f0835652ea89419a97b
 import { toLocalYmd } from "@/lib/date";
 
 export default function ResidentFormDialog({ open, onClose, onSaved, initialData }) {
