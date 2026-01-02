@@ -4,6 +4,16 @@ A React + Vite web UI for the Residential Management system.
 
 It provides staff-facing pages (dashboard, households, residents, meetings, temporary stay/leave, user management, profile) and a public meeting check-in page for residents (QR flow).
 
+## Team Information
+
+Group: 20
+
+- Trịnh Minh Thành - 20235834
+- Lê Duy Vũ - 20235878
+- Đào Thái Hoàng - 20235720
+- Trần Thu Phương - 20235811
+- Nguyễn Hải Dương - 20235692
+
 ## Tech Stack
 
 - React (Vite)
