@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-<<<<<<< HEAD
 import {
   Select,
   SelectContent,
@@ -16,9 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-=======
 import { DateField } from "@/components/ui/date-field";
->>>>>>> 18954c9e9f6f05ffe4102f0835652ea89419a97b
 import { toLocalYmd } from "@/lib/date";
 
 const toDateInputValue = (value) => toLocalYmd(value);
